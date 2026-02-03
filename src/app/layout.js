@@ -1,5 +1,4 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { Section } from "./class/Section";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,19 +20,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pt-5 p-4`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className=" gap-1 flex-col flex justify-start rounded-2xl text-black font-black">
-          <Section 
-          name = "School"
-          />
-          <Section 
-          name = "Class 1"
-          />
-          <Section 
-          name = "Class 2"
-          />
-        </div>
+        {children}
       </body>
     </html>
   );
