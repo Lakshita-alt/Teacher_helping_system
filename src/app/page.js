@@ -7,8 +7,7 @@ export default function Home() {
     <div className="text-black flex flex-col">
       <h1 className = "font-black text-black">
         Not valid
-       </h1>
-      
+      </h1>
     </div>
   );
 }
