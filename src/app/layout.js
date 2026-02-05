@@ -1,7 +1,3 @@
-import ClassSummary from "@/component/ClassSummary"
-import StudentSummary from "@/component/StudentSummary"
-import Suggestion from "@/component/Suggestions"
-import UploadForm from "@/component/Uploadcsv"
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -26,16 +22,9 @@ export default function RootLayout({children}) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex m-4">
-        <div className="w-30 ">
-                    <UploadForm />
-                    <ClassSummary />
-                    <StudentSummary />
-                    <Suggestion />
-        </div>
+        
         <div>
           {children}
-        </div>
         </div>
       </body>
     </html>

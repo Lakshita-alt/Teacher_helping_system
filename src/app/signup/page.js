@@ -15,7 +15,7 @@ export default function Home() {
     // <todo> -> replace the hard checking with auth 
     if(name=="John" && code=="1234" && password=="1234"){
       console.log([name,code,password])
-      window.location.href="http://localhost:3000/";
+      window.location.href="http://localhost:3000/home";
       return true;
     }
     return false;
