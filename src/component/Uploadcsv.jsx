@@ -4,7 +4,7 @@ import { uploadCsvFile } from "../../server/csv"
 
 export default function UploadForm() {
   return (
-    <div className="w-full max-w-[160px] flex flex-col gap-3 mb-6">
+    <div className="w-full max-w-40 flex flex-col gap-3 mb-6">
       <form action={uploadCsvFile} className="flex flex-col gap-3">
         
         <div className="relative group">
