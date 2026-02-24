@@ -1,11 +1,11 @@
 "use client"
 import { useState } from "react";
 
-export default function Teacher(){
+export default function Teacher() {
 
-    const [searchName,setSearchName] = useState("");
+    const [searchName, setSearchName] = useState("");
 
-    const personas = ["High-Risk students","Motivated but Under-Resourced","low attendance"];
+    const personas = ["High-Risk students", "Motivated but Under-Resourced", "low attendance"];
 
     const students = [
         { name: "Aarav Patel", personas: "High-Risk students" },
@@ -62,50 +62,54 @@ export default function Teacher(){
         { name: "Alok Saxena", personas: "High-Risk students" }
     ]
 
-    return(
+    return (
         <div className="flex m-4 gap-2">
             <div className="w-55 h-150 bg-pink-50 overflow-y-auto">
                 <select className="w-20 h-10"
-                onChange={(e)=>{setSearchName(e.target.value)}} value={searchName}
+                    onChange={(e) => { setSearchName(e.target.value) }} value={searchName}
                 >
-                    {personas.map((persona)=>{
-                        return(<option key = {persona}>
+                    {personas.map((persona) => {
+                        return (<option key={persona}>
                             {persona}
                         </option>
-                    )})}
+                        )
+                    })}
                 </select>
 
-             <div className="flex flex-col gap-2 overflow-y-auto max-h-[70vh] pr-2">
-             {students.filter(student => student.personas.toLowerCase().includes(searchName?.toLowerCase() || "")).map((student) => (
-               <div key={student.name} className="w-full rounded-xl p-3 bg-white border border-pink-50 shadow-sm cursor-pointer hover:bg-pink-500 hover:text-white transition-all font-bold text-gray-600">
-                {student.name}
-               </div>))}
-               </div>
-             </div>
-             <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-        <h3 className="text-pink-600 font-black uppercase tracking-widest text-xs mb-4">Top Section</h3>
-        <div className="text-xl font-bold text-gray-800">Student Identity</div>
-    </div>
-    
-    {/* Card 2 */}
-    <div>
-        <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-        <h3 className="text-orange-500 font-black uppercase tracking-widest text-xs mb-4">Analysis</h3>
-        <div className="text-xl font-bold text-gray-800">Why this student fits this learning pattern</div>
-    </div>
+                <div className="flex flex-col gap-2 overflow-y-auto max-h-[70vh] pr-2">
+                    {students.filter(student => student.personas.toLowerCase().includes(searchName?.toLowerCase() || "")).map((student) => (
+                        <div key={student.name} className="w-full rounded-xl p-3 bg-white border border-pink-50 shadow-sm cursor-pointer hover:bg-pink-500 hover:text-white transition-all font-bold text-gray-600">
+                            {student.name}
+                        </div>))}
+                </div>
+            </div>
+            <div>
+                {/* Card 1 */}
+                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
+                    <h3 className="text-pink-600 font-black uppercase tracking-widest text-xs mb-4">Top Section</h3>
+                    <div className="text-xl font-bold text-gray-800">Student Identity</div>
+                </div>
 
-    {/* Card 3 */}
-    <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-        <h3 className="text-red-500 font-black uppercase tracking-widest text-xs mb-4">Risk Factors</h3>
-        <div className="text-xl font-bold text-gray-800">Early Warning Signals</div>
-    </div>
+                {/* Card 2 */}
+                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
+                    <h3 className="text-orange-500 font-black uppercase tracking-widest text-xs mb-4">Analysis</h3>
+                    <div className="text-xl font-bold text-gray-800">Why this student fits this learning pattern</div>
+                </div>
+            </div>
 
-    {/* Card 4 */}
-    <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-        <h3 className="text-green-500 font-black uppercase tracking-widest text-xs mb-4">Action Plan</h3>
-        <div className="text-xl font-bold text-gray-800">Recommended Teaching Strategies</div>
-    </div>
-    </div>
- </div>
-             )
+            <div>
+                {/* Card 3 */}
+                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
+                    <h3 className="text-red-500 font-black uppercase tracking-widest text-xs mb-4">Risk Factors</h3>
+                    <div className="text-xl font-bold text-gray-800">Early Warning Signals</div>
+                </div>
+
+                {/* Card 4 */}
+                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
+                    <h3 className="text-green-500 font-black uppercase tracking-widest text-xs mb-4">Action Plan</h3>
+                    <div className="text-xl font-bold text-gray-800">Recommended Teaching Strategies</div>
+                </div>
+            </div>
+        </div>
+    )
 }

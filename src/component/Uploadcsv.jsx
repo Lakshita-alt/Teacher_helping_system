@@ -3,6 +3,11 @@
 import { uploadCsvFile } from "../../server/csv"
 
 export default function UploadForm() {
+
+  function ClickRedirect(e){
+    window.location.href = "http://localhost:3000/home/class"
+  }
+
   return (
     <div className="w-full max-w-40 flex flex-col gap-3 mb-6">
       <form action={uploadCsvFile} className="flex flex-col gap-3">
@@ -22,7 +27,7 @@ export default function UploadForm() {
         </div>
 
         <button type="submit" className="w-full py-4 px-2 bg-[#FF9F00] hover:bg-[#E68F00] text-white font-black text-xs uppercase rounded-[15px] shadow-lg shadow-orange-100 
-        active:scale-95 transition-all cursor-pointer">Upload Data</button>
+        active:scale-95 transition-all cursor-pointer" onClick ={(e)=>ClickRedirect(e)}>Upload Data</button>
         
       </form>
     </div>

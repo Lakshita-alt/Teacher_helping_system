@@ -27,8 +27,7 @@ export default function RootLayout({children}) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="flex w-fit m-4">
-        <div className="w-30 ">
-            <UploadForm />
+        <div className="w-[15 vw]">
             <ClassSummary />
             <StudentSummary />
             <Suggestion />

@@ -43,6 +43,17 @@ export default function Home() {
         
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+            Teacher Name
+          </label>
+          <input 
+            type="text" 
+            placeholder="Full Name"
+            className="bg-slate-50 border border-slate-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-amber-400 transition-all text-black font-medium" 
+            onChange={(e)=>(setName(e.target.value))}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
             Teacher Code
           </label>
           <input 
@@ -53,17 +64,6 @@ export default function Home() {
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
-            Teacher Name
-          </label>
-          <input 
-            type="text" 
-            placeholder="Full Name"
-            className="bg-slate-50 border border-slate-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-amber-400 transition-all text-black font-medium" 
-            onChange={(e)=>(setName(e.target.value))}
-          />
-        </div>
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
             Password
