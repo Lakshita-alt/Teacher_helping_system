@@ -26,7 +26,7 @@ export default function Home() {
 
   return (
 
-  <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 p-4">
+  <div className="min-h-screen w-full flex items-center justify-center bg-[#f5f2ed] p-4">
     
     <div className="bg-white shadow-2xl rounded-[2.5rem] p-10 w-full max-w-md border border-slate-100 flex flex-col items-center">
       

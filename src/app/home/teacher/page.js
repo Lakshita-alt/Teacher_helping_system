@@ -63,51 +63,76 @@ export default function Teacher() {
     ]
 
     return (
-        <div className="flex m-4 gap-2">
-            <div className="w-55 h-150 bg-pink-50 overflow-y-auto">
-                <select className="w-20 h-10"
-                    onChange={(e) => { setSearchName(e.target.value) }} value={searchName}
-                >
-                    {personas.map((persona) => {
-                        return (<option key={persona}>
-                            {persona}
-                        </option>
-                        )
-                    })}
-                </select>
+        <div className="flex flex-col xl:flex-row gap-8 w-full min-h-[calc(100vh-6rem)]">
+            {/* Sidebar Search Area */}
+            <div className="w-full xl:w-[25vw] max-w-md flex flex-col gap-6">
+                <div className="space-y-4 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <div className="flex flex-col gap-2">
+                        <label className="px-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Filter by Persona</label>
+                        <div className="relative">
+                            <select className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-amber-50 focus:border-amber-400 appearance-none transition-all cursor-pointer"
+                                onChange={(e) => { setSearchName(e.target.value) }} value={searchName}
+                            >
+                                <option value="">All Personas</option>
+                                {personas.map((persona) => {
+                                    return (<option key={persona} value={persona}>
+                                        {persona}
+                                    </option>
+                                    )
+                                })}
+                            </select>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</span>
+                        </div>
+                    </div>
+                </div>
 
-                <div className="flex flex-col gap-2 overflow-y-auto max-h-[70vh] pr-2">
-                    {students.filter(student => student.personas.toLowerCase().includes(searchName?.toLowerCase() || "")).map((student) => (
-                        <div key={student.name} className="w-full rounded-xl p-3 bg-white border border-pink-50 shadow-sm cursor-pointer hover:bg-pink-500 hover:text-white transition-all font-bold text-gray-600">
-                            {student.name}
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-4 shadow-sm flex flex-col gap-1 overflow-y-auto max-h-[60vh] xl:max-h-[70vh]">
+                    <div className="px-4 py-3 mb-2">
+                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Student List</h3>
+                    </div>
+                    {students.filter(student => !searchName || student.personas.toLowerCase().includes(searchName?.toLowerCase())).map((student) => (
+                        <div key={student.name} className="w-full rounded-2xl p-4 transition-all font-bold text-sm bg-transparent text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-100 group flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-[10px] group-hover:bg-white transition-colors">👤</div>
+                            <div className="flex flex-col">
+                                <span className="leading-tight">{student.name}</span>
+                                <span className="text-[9px] font-medium text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">{student.personas}</span>
+                            </div>
                         </div>))}
                 </div>
             </div>
-            <div>
+
+            {/* Content Cards Area */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 content-start">
                 {/* Card 1 */}
-                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-                    <h3 className="text-pink-600 font-black uppercase tracking-widest text-xs mb-4">Top Section</h3>
-                    <div className="text-xl font-bold text-gray-800">Student Identity</div>
+                <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 group">
+                    <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">🆔</div>
+                    <h3 className="text-indigo-600 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Identity Profile</h3>
+                    <div className="text-2xl font-black text-slate-800 tracking-tight mb-2">Student Identity</div>
+                    <p className="text-slate-400 text-sm font-medium leading-relaxed">Comprehensive background and demographic mapping of the selected student persona.</p>
                 </div>
 
                 {/* Card 2 */}
-                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-                    <h3 className="text-orange-500 font-black uppercase tracking-widest text-xs mb-4">Analysis</h3>
-                    <div className="text-xl font-bold text-gray-800">Why this student fits this learning pattern</div>
+                <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 group">
+                    <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">🔍</div>
+                    <h3 className="text-amber-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Deep Analysis</h3>
+                    <div className="text-2xl font-black text-slate-800 tracking-tight mb-2">Learning Patterns</div>
+                    <p className="text-slate-400 text-sm font-medium leading-relaxed">AI-driven insights into why this student aligns with specific behavioral markers.</p>
                 </div>
-            </div>
 
-            <div>
                 {/* Card 3 */}
-                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-                    <h3 className="text-red-500 font-black uppercase tracking-widest text-xs mb-4">Risk Factors</h3>
-                    <div className="text-xl font-bold text-gray-800">Early Warning Signals</div>
+                <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 group">
+                    <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">⚠️</div>
+                    <h3 className="text-rose-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Risk Evaluation</h3>
+                    <div className="text-2xl font-black text-slate-800 tracking-tight mb-2">Warning Signals</div>
+                    <p className="text-slate-400 text-sm font-medium leading-relaxed">Identification of critical triggers and early warning signs that require attention.</p>
                 </div>
 
                 {/* Card 4 */}
-                <div className="bg-white p-8 rounded-[30px] shadow-xl border border-gray-100 min-h-[300px]">
-                    <h3 className="text-green-500 font-black uppercase tracking-widest text-xs mb-4">Action Plan</h3>
-                    <div className="text-xl font-bold text-gray-800">Recommended Teaching Strategies</div>
+                <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 group">
+                    <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">🎯</div>
+                    <h3 className="text-emerald-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Intervention</h3>
+                    <div className="text-2xl font-black text-slate-800 tracking-tight mb-2">Action Strategy</div>
+                    <p className="text-slate-400 text-sm font-medium leading-relaxed">Personalized teaching methodologies and tactical steps for student success.</p>
                 </div>
             </div>
         </div>

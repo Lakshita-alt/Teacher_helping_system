@@ -7,11 +7,10 @@ export default function Suggestion(){
     }
 
     return(
-        <div className="w-full mb-3 px-2">
-            <button type="submit" className="w-fit py-4 px-2 bg-[#FF9F00] hover:bg-[#E68F00] text-white font-black text-xs uppercase rounded-[15px] 
-            shadow-lg shadow-orange-100 active:scale-95 transition-all cursor-pointer"
+        <div className="w-full mb-3">
+            <button type="button" className="w-full py-4 px-6 bg-white hover:bg-slate-50 text-slate-700 border border-slate-100 font-bold text-sm uppercase tracking-wider rounded-2xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all cursor-pointer text-left"
             onClick={(e)=>ClickRedirect(e)}
-            >Suggestion</button>
+            ><span className="mr-2">💡</span> Suggestion</button>
         </div>
     )
 }

@@ -1,20 +1,18 @@
 "use client";
-import { redirect, usePathname } from "next/navigation";
-import { useState } from "react";
+import { redirect } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-
-  const pathname = usePathname();
-
-  if(pathname.startsWith("/") && !pathname.includes("/admin")){
-    redirect("/admin/school")
-  }
+  useEffect(() => {
+    redirect("/admin/school");
+  }, []);
 
   return (
-    <div className="text-black flex flex-col">
-      <h1 className = "font-black text-black">
-        Not valid
-      </h1>
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin"></div>
+        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Teacher System...</p>
+      </div>
     </div>
   );
 }

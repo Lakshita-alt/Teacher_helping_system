@@ -24,7 +24,7 @@ export default function Home() {
 
   return (
     // light background
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f2ed] p-4">
       
       <div className="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-sm border border-slate-100">
         
