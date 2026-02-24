@@ -1,6 +1,6 @@
-import ClassSummary from "@/component/ClassSummary"
-import StudentSummary from "@/component/StudentSummary"
-import Suggestion from "@/component/Suggestions"
+import ClassSummary from "@/component/teacher/ClassSummary"
+import StudentSummary from "@/component/teacher/StudentSummary"
+import Suggestion from "@/component/teacher/Suggestions"
 import UploadForm from "@/component/Uploadcsv"
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";

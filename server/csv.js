@@ -2,10 +2,11 @@
 
 import fs from "node:fs/promises"
 import path from "path";
+import { randomUUID } from "node:crypto";
 
-const timeStamp = Date.now();
 
 export async function uploadCsvFile(formData){
+    const uniqueName = randomUUID();
     const file  = formData.get("file");
     // console.log(file.name==="undefined")
     if(file.name==="undefined"){
@@ -14,7 +15,7 @@ export async function uploadCsvFile(formData){
         }
     }
     const buffer = Buffer.from(await file.arrayBuffer());
-    const filePath = path.join(process.cwd(),"public",String(file.name+String(timeStamp)));
+    const filePath = path.join(process.cwd(),"public",String(file.name+String(uniqueName)));
     try{
         // <TODO> -> write the file to db
         await fs.writeFile(filePath,buffer);

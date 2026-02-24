@@ -1,9 +1,12 @@
-import ClassSummary from "@/component/ClassSummary"
-import StudentSummary from "@/component/StudentSummary"
-import Suggestion from "@/component/Suggestions"
+import ClassSummary from "@/component/teacher/ClassSummary"
+import StudentSummary from "@/component/teacher/StudentSummary"
+import Suggestion from "@/component/teacher/Suggestions"
 import UploadForm from "@/component/Uploadcsv"
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
+import SchoolSummary from "@/component/admin/SchoolSummary";
+import ClassBasedAdminSummary from "@/component/admin/ClassBasedOverView";
+import StudentBasedAdminSummary from "@/component/admin/SteudentBasedSummary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +31,9 @@ export default function RootLayout({children}) {
       >
         <div className="flex w-fit m-4">
         <div className="w-[15 vw]">
-            <ClassSummary />
-            <StudentSummary />
-            <Suggestion />
+            <SchoolSummary />
+            <ClassBasedAdminSummary />
+            <StudentBasedAdminSummary />  
         </div>
         <div>
           {children}
