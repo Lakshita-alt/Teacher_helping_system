@@ -4,12 +4,12 @@ import Suggestion from "@/component/teacher/Suggestions"
 
 export default function HomeLayout({children}) {
   return (
-    <div className="flex h-screen bg-[#f5f2ed] w-full overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground w-full overflow-hidden">
       {/* Fixed Sidebar */}
-      <div className="w-full md:w-[22vw] lg:w-[18vw] xl:w-[15vw] min-w-[260px] p-6 bg-white border-r border-slate-200/50 flex flex-col gap-2 h-full overflow-y-auto shrink-0">
+      <div className="w-full md:w-[22vw] lg:w-[18vw] xl:w-[15vw] min-w-[260px] p-6 bg-sidebar border-r border-sidebar-border flex flex-col gap-2 h-full overflow-y-auto shrink-0">
         <div className="mb-10 px-2 mt-4">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Teacher App</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Analysis Hub</p>
+          <h2 className="text-2xl font-black text-foreground tracking-tighter uppercase italic leading-none">Teacher App</h2>
+          <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest mt-2">Analysis Hub</p>
         </div>
         <div className="flex flex-col gap-1">
           <ClassSummary />

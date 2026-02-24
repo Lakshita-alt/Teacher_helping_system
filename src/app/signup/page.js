@@ -24,15 +24,15 @@ export default function Home() {
 
   return (
     // light background
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f2ed] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 text-foreground">
       
-      <div className="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-sm border border-slate-100">
+      <div className="bg-card shadow-2xl rounded-3xl p-8 w-full max-w-sm border border-card-border">
         
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic">
+          <h1 className="text-3xl font-black tracking-tight uppercase italic">
             Sign Up
           </h1>
-          <p className="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">
+          <p className="text-muted text-xs mt-2 font-bold uppercase tracking-widest">
             Teacher Helping System
           </p>
         </div>
@@ -40,37 +40,37 @@ export default function Home() {
         <form className="flex flex-col gap-5 w-full">
           
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-500 ml-1 uppercase">Teacher Code</label>
+            <label className="text-xs font-bold text-muted ml-1 uppercase">Teacher Code</label>
             <input 
               type="text" 
               placeholder="Enter Code"
-              className="bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-amber-400 transition-all text-black" 
+              className="bg-card-muted border border-card-border rounded-xl p-3 outline-none focus:ring-2 focus:ring-accent transition-all text-foreground placeholder:text-muted/50" 
               onChange={(e) => setCode(e.target.value)} 
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-500 ml-1 uppercase">Teacher Name</label>
+            <label className="text-xs font-bold text-muted ml-1 uppercase">Teacher Name</label>
             <input 
               type="text" 
               placeholder="Full Name"
-              className="bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-amber-400 transition-all text-black" 
+              className="bg-card-muted border border-card-border rounded-xl p-3 outline-none focus:ring-2 focus:ring-accent transition-all text-foreground placeholder:text-muted/50" 
               onChange={(e) => setName(e.target.value)} 
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-500 ml-1 uppercase">Password</label>
+            <label className="text-xs font-bold text-muted ml-1 uppercase">Password</label>
             <input 
               type="password" // Changed 2 password type for security dots 
               placeholder="••••••••"
-              className="bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-amber-400 transition-all text-black" 
+              className="bg-card-muted border border-card-border rounded-xl p-3 outline-none focus:ring-2 focus:ring-accent transition-all text-foreground placeholder:text-muted/50" 
               onChange={(e) => setPassword(e.target.value)} 
             />
           </div>
 
           <button 
-            className="cursor-pointer bg-slate-800 hover:bg-slate-900 text-white font-black py-4 rounded-xl mt-4 shadow-lg shadow-slate-200 transition-all active:scale-95 text-center uppercase tracking-widest" 
+            className="cursor-pointer bg-foreground text-background hover:opacity-90 font-black py-4 rounded-xl mt-4 shadow-lg shadow-accent/10 transition-all active:scale-95 text-center uppercase tracking-widest" 
             onClick={(e) => Onclick(e)}
           >
             Create Account

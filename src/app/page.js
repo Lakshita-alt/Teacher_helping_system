@@ -8,10 +8,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin"></div>
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Teacher System...</p>
+        <div className="w-12 h-12 border-4 border-sidebar-border border-t-amber-500 rounded-full animate-spin"></div>
+        <p className="text-xs font-black opacity-50 uppercase tracking-widest text-foreground">Loading Teacher System...</p>
       </div>
     </div>
   );

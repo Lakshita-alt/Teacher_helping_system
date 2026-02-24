@@ -34,20 +34,20 @@ export default function HOME(){
     ];
 
     return(
-        <div className="space-y-8 w-full max-w-full">
+        <div className="space-y-8 w-full max-w-full text-foreground">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-800 tracking-tight leading-none">School Summary</h1>
-              <div className="w-fit px-4 py-2 bg-white rounded-2xl shadow-sm border border-slate-200/50 text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-none italic uppercase">School Summary</h1>
+              <div className="w-fit px-4 py-2 bg-card rounded-2xl shadow-sm border border-card-border text-[10px] md:text-sm font-bold text-muted uppercase tracking-widest">
                 Academic Year 2025-26
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-              <div className="lg:col-span-8 bg-white p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] shadow-sm border border-slate-100 min-h-[400px] md:min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden group">
+              <div className="lg:col-span-8 bg-card p-8 md:p-12 rounded-[2rem] shadow-sm border border-card-border min-h-[400px] md:min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden group">
                 <div className="flex flex-col md:flex-row items-center gap-12 w-full h-full relative z-10">
                     {/* SVG Pie Chart */}
                     <div className="relative w-64 h-64 shrink-0">
-                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90 transform shadow-2xl rounded-full">
+                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90 transform rounded-full">
                         {(() => {
                           const total = avgP1 + avgP4 + 70 + 60; // Just using some mock total for visual
                           const p1Perc = (avgP1 / total) * 100;
@@ -73,21 +73,21 @@ export default function HOME(){
                                 strokeWidth="20"
                                 strokeDasharray={`${segment.perc} ${100 - segment.perc}`}
                                 strokeDashoffset={-offset}
-                                className="transition-all duration-1000 ease-out"
+                                className="transition-all duration-700 ease-out"
                               />
                             );
                           });
                         })()}
                       </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-full m-8 shadow-inner">
-                        <span className="text-2xl font-black text-slate-800 tracking-tighter">Avg.</span>
-                        <span className="text-[10px] font-black text-slate-400 uppercase">Distribution</span>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-card rounded-full m-8 border border-card-border shadow-sm">
+                        <span className="text-2xl font-black tracking-tighter">Avg.</span>
+                        <span className="text-[10px] font-black text-muted uppercase">Distribution</span>
                       </div>
                     </div>
 
                     <div className="flex-1 space-y-6">
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight leading-none italic uppercase">Campus Distribution</h3>
-                        <p className="text-sm font-medium text-slate-400">Aggregated persona data across {totalClasses} active sections.</p>
+                        <h3 className="text-xl font-black tracking-tight leading-none italic uppercase">Campus Distribution</h3>
+                        <p className="text-sm font-medium text-muted">Aggregated persona data across {totalClasses} active sections.</p>
                         
                         <div className="grid grid-cols-2 gap-4">
                             {[
@@ -97,9 +97,9 @@ export default function HOME(){
                                 { label: 'Persona 4', color: 'bg-emerald-500', val: avgP4 }
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{item.label}</span>
-                                    <span className="text-xs font-black text-slate-800">{item.val}%</span>
+                                    <div className={`w-3 h-3 rounded-sm ${item.color}`}></div>
+                                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider">{item.label}</span>
+                                    <span className="text-xs font-black">{item.val}%</span>
                                 </div>
                             ))}
                         </div>
@@ -108,18 +108,18 @@ export default function HOME(){
               </div>
               <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                 {metrics.map((m, i) => (
-                  <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 group">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-hover:text-amber-500 transition-colors">{m.label}</span>
-                    <span className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">{m.value}</span>
+                  <div key={i} className="bg-card p-6 md:p-8 rounded-2xl shadow-sm border border-card-border flex flex-col items-center justify-center hover:bg-card-muted transition-all duration-200 group">
+                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-2 group-hover:text-foreground transition-colors">{m.label}</span>
+                    <span className="text-3xl md:text-4xl font-black tracking-tighter">{m.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
-                  <h2 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">Class Overviews</h2>
-                  <button className="text-sm font-black text-amber-500 hover:text-amber-600 uppercase tracking-widest">View All</button>
+            <div className="bg-card rounded-2xl shadow-sm border border-card-border overflow-hidden">
+                <div className="px-8 py-6 border-b border-card-border flex items-center justify-between">
+                  <h2 className="text-lg md:text-xl font-bold tracking-tight">Class Overviews</h2>
+                  <button className="text-sm font-black text-foreground/70 hover:text-foreground uppercase tracking-widest">View All</button>
                 </div>
                 <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
                     {ClassInfoApiRes.map((cls)=>(
