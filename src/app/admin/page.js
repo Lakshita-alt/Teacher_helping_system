@@ -5,7 +5,7 @@ export default function Admin() {
     const pathname = usePathname();
 
   if (pathname.startsWith('/admin') && !pathname.includes('/school')) {
-    redirect('/admin/login');
+    redirect('/admin');
   }
     return (
         <div className="flex justify-center items-center h-screen">
