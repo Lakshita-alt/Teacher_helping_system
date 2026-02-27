@@ -1,36 +1,54 @@
 "use client"
 
-// class is a keyword
-
+import { useState, useEffect } from "react";
 import SingleClassOverview from "@/component/admin/SingleClassOverview";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 export default function HOME(){
+    const [classes, setClasses] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const ClassInfoApiRes = [
-  { className: "Class A", one: 75, two: 82, three: 68, four: 90, graph: "inc" },
-  { className: "Class B", one: 88, two: 79, three: 84, four: 80, graph: "dec" },
-  { className: "Class C", one: 60, two: 65, three: 63, four: 64, graph: "mid" },
-  { className: "Class D", one: 92, two: 94, three: 96, four: 98, graph: "inc" },
-  { className: "Class E", one: 70, two: 72, three: 71, four: 69, graph: "mid" },
-  { className: "Class F", one: 45, two: 55, three: 85, four: 40, graph: "dec" },
-  { className: "Class G", one: 30, two: 40, three: 50, four: 95, graph: "inc" },
-  { className: "Class H", one: 85, two: 30, three: 45, four: 60, graph: "mid" },
-  { className: "Class I", one: 65, two: 85, three: 25, four: 70, graph: "inc" },
-  { className: "Class J", one: 50, two: 50, three: 50, four: 50, graph: "mid" },
-  { className: "Class K", one: 95, two: 85, three: 75, four: 65, graph: "dec" },
-  { className: "Class L", one: 20, two: 40, three: 60, four: 80, graph: "inc" }
-];
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const [classesRes, summaryRes] = await Promise.all([
+                    fetch('/api/classes'),
+                    fetch('/api/class-summary')
+                ]);
+                const classesData = await classesRes.json();
+                const summaryData = await summaryRes.json();
+                setClasses(classesData);
+                setSummary(summaryData);
+            } catch (error) {
+                console.error("Failed to fetch school data:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
 
-    const totalClasses = ClassInfoApiRes.length;
-    const avgP1 = Math.round(ClassInfoApiRes.reduce((acc, curr) => acc + curr.one, 0) / totalClasses);
-    const avgP4 = Math.round(ClassInfoApiRes.reduce((acc, curr) => acc + curr.four, 0) / totalClasses);
-    const trendInc = ClassInfoApiRes.filter(c => c.graph === "inc").length;
+    if (loading) {
+        return (
+            <div className="w-full h-[60vh] flex items-center justify-center">
+                <div className="text-muted font-black uppercase tracking-[0.2em] animate-pulse">Analyzing Campus Data...</div>
+            </div>
+        );
+    }
+
+    const personaData = Object.entries(summary.personaDistribution).map(([name, value], index) => ({
+        name: name.split(' ').slice(0, 2).join(' '),
+        fullLabel: name,
+        value,
+        color: ['#6366f1', '#f59e0b', '#f43f5e', '#10b981', '#ec4899', '#8b5cf6'][index % 6]
+    })).sort((a, b) => b.value - a.value).slice(0, 4);
 
     const metrics = [
-      { label: "Total Classes", value: totalClasses },
-      { label: "Avg Persona 1", value: `${avgP1}%` },
-      { label: "Avg Persona 4", value: `${avgP4}%` },
-      { label: "Rising Trends", value: trendInc }
+      { label: "Total Students", value: summary.totalStudents },
+      { label: "Avg Attendance", value: `${summary.averageAttendance}%` },
+      { label: "Active Sections", value: classes.length },
+      { label: "High Risk", value: summary.riskDistribution["High Risk"] || 0 }
     ];
 
     return(
@@ -45,61 +63,44 @@ export default function HOME(){
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
               <div className="lg:col-span-8 bg-card p-8 md:p-12 rounded-[2rem] shadow-sm border border-card-border min-h-[400px] md:min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden group">
                 <div className="flex flex-col md:flex-row items-center gap-12 w-full h-full relative z-10">
-                    {/* SVG Pie Chart */}
                     <div className="relative w-64 h-64 shrink-0">
-                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90 transform rounded-full">
-                        {(() => {
-                          const total = avgP1 + avgP4 + 70 + 60; // Just using some mock total for visual
-                          const p1Perc = (avgP1 / total) * 100;
-                          const p2Perc = (75 / total) * 100;
-                          const p3Perc = (65 / total) * 100;
-                          const p4Perc = (avgP4 / total) * 100;
-                          
-                          let currentOffset = 0;
-                          return [
-                            { perc: p1Perc, color: '#6366f1' }, // Indigo
-                            { perc: p2Perc, color: '#f59e0b' }, // Amber
-                            { perc: p3Perc, color: '#f43f5e' }, // Rose
-                            { perc: p4Perc, color: '#10b981' }  // Emerald
-                          ].map((segment, i) => {
-                            const offset = currentOffset;
-                            currentOffset += segment.perc;
-                            return (
-                              <circle
-                                key={i}
-                                cx="50" cy="50" r="40"
-                                fill="transparent"
-                                stroke={segment.color}
-                                strokeWidth="20"
-                                strokeDasharray={`${segment.perc} ${100 - segment.perc}`}
-                                strokeDashoffset={-offset}
-                                className="transition-all duration-700 ease-out"
-                              />
-                            );
-                          });
-                        })()}
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-card rounded-full m-8 border border-card-border shadow-sm">
-                        <span className="text-2xl font-black tracking-tighter">Avg.</span>
-                        <span className="text-[10px] font-black text-muted uppercase">Distribution</span>
-                      </div>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={personaData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={70}
+                                    outerRadius={100}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {personaData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip 
+                                    contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 900}}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-2xl font-black tracking-tighter">Campus</span>
+                            <span className="text-[10px] font-black text-muted uppercase">Archetypes</span>
+                        </div>
                     </div>
 
                     <div className="flex-1 space-y-6">
                         <h3 className="text-xl font-black tracking-tight leading-none italic uppercase">Campus Distribution</h3>
-                        <p className="text-sm font-medium text-muted">Aggregated persona data across {totalClasses} active sections.</p>
+                        <p className="text-sm font-medium text-muted">Aggregated persona data across {classes.length} active sections.</p>
                         
-                        <div className="grid grid-cols-2 gap-4">
-                            {[
-                                { label: 'Persona 1', color: 'bg-indigo-500', val: avgP1 },
-                                { label: 'Persona 2', color: 'bg-amber-500', val: '75%' },
-                                { label: 'Persona 3', color: 'bg-rose-500', val: '65%' },
-                                { label: 'Persona 4', color: 'bg-emerald-500', val: avgP4 }
-                            ].map((item, i) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {personaData.map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <div className={`w-3 h-3 rounded-sm ${item.color}`}></div>
-                                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider">{item.label}</span>
-                                    <span className="text-xs font-black">{item.val}%</span>
+                                    <div className="w-3 h-3 rounded-sm shrink-0" style={{backgroundColor: item.color}}></div>
+                                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider line-clamp-1">{item.name}</span>
+                                    <span className="text-xs font-black">{Math.round((item.value/summary.totalStudents)*100)}%</span>
                                 </div>
                             ))}
                         </div>
@@ -119,11 +120,11 @@ export default function HOME(){
             <div className="bg-card rounded-2xl shadow-sm border border-card-border overflow-hidden">
                 <div className="px-8 py-6 border-b border-card-border flex items-center justify-between">
                   <h2 className="text-lg md:text-xl font-bold tracking-tight">Class Overviews</h2>
-                  <button className="text-sm font-black text-foreground/70 hover:text-foreground uppercase tracking-widest">View All</button>
+                  <button className="text-sm font-black text-foreground/70 hover:text-foreground uppercase tracking-widest">View All {classes.length} Sections</button>
                 </div>
                 <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
-                    {ClassInfoApiRes.map((cls)=>(
-                        <SingleClassOverview key={cls.className} ClsInfo={cls}/>
+                    {classes.map((cls)=>(
+                        <SingleClassOverview key={cls.hash} ClsInfo={cls}/>
                     ))}
                 </div>
             </div>

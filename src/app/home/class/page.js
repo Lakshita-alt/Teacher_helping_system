@@ -1,29 +1,87 @@
 "use client"
+import { useState, useEffect } from "react";
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell, PieChart, Pie
+} from 'recharts';
 
 export default function Class() {
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [className, setClassName] = useState("Global Database");
+
+  useEffect(() => {
+    async function fetchSummary() {
+      try {
+        const stored = localStorage.getItem('teacher_auth');
+        let assignedClass = null;
+        if (stored) {
+            const auth = JSON.parse(stored);
+            assignedClass = auth.className;
+            if (assignedClass) setClassName(assignedClass);
+        }
+
+        let url = '/api/class-summary';
+        if (assignedClass) {
+            url = `/api/class-summary/${encodeURIComponent(assignedClass)}`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+        setSummary(data);
+      } catch (error) {
+        console.error("Failed to fetch class summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSummary();
+  }, []);
+
+  if (loading || !summary) {
+    return (
+      <div className="w-full h-[60vh] flex items-center justify-center font-mono">
+        <div className="text-muted font-black uppercase tracking-[0.2em] animate-pulse">Loading Class Analytics...</div>
+      </div>
+    );
+  }
+
+  const highRiskCount = summary?.riskDistribution?.["High Risk"] || 0;
+  const highRiskPercentage = ((highRiskCount / (summary?.totalStudents || 1)) * 100).toFixed(1);
+
   const stats = [
-    { title: "Class Size", value: "42", color: "text-indigo-600", bg: "bg-indigo-50", icon: "👥" },
-    { title: "High Risk", value: "12%", color: "text-rose-600", bg: "bg-rose-50", icon: "⚠️" },
-    { title: "Avg. Score", value: "78", color: "text-amber-600", bg: "bg-amber-50", icon: "📈" },
-    { title: "Engagement", value: "92%", color: "text-emerald-600", bg: "bg-emerald-50", icon: "✨" },
+    { title: "Class Size", value: (summary?.totalStudents || 0).toString(), color: "text-indigo-600", bg: "bg-indigo-50", icon: "👥" },
+    { title: "High Risk", value: `${highRiskPercentage}%`, color: "text-rose-600", bg: "bg-rose-50", icon: "⚠️" },
+    { title: "Avg. Attendance", value: `${summary?.averageAttendance || 0}%`, color: "text-amber-600", bg: "bg-amber-50", icon: "📈" },
+    { title: "Avg. Study Hours", value: summary?.averageHoursStudied || 0, color: "text-emerald-600", bg: "bg-emerald-50", icon: "✨" },
   ];
 
-  const personaDistribution = [
-    { name: "Visual Learners", value: 35, color: "bg-indigo-500" },
-    { name: "Kinesthetic", value: 25, color: "bg-amber-500" },
-    { name: "Auditory", value: 20, color: "bg-emerald-500" },
-    { name: "Read/Write", value: 20, color: "bg-slate-500" },
+  // Mock data for trend since CSV doesn't have time series
+  const trendData = [
+    { name: 'Mon', score: 65 },
+    { name: 'Tue', score: 58 },
+    { name: 'Wed', score: 82 },
+    { name: 'Thu', score: 76 },
+    { name: 'Fri', score: 91 },
   ];
+
+  const personaColors = ['#6366f1', '#f59e0b', '#10b981', '#64748b', '#ec4899', '#8b5cf6'];
+  const personaData = Object.entries(summary?.personaDistribution || {}).map(([name, value], index) => ({
+    name: name.split(' ').slice(0, 2).join(' '), // Shorten name
+    value,
+    fullLabel: name,
+    color: personaColors[index % personaColors.length]
+  })).sort((a, b) => b.value - a.value).slice(0, 5);
 
   return (
-    <div className="space-y-8 w-full animate-in fade-in duration-700 text-foreground">
+    <div className="space-y-8 w-full animate-in fade-in duration-700 text-foreground font-mono">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight uppercase italic">Class Analysis</h1>
-          <p className="text-muted font-bold text-xs uppercase tracking-widest mt-1">Section A • Morning Batch</p>
+          <h1 className="text-3xl font-black tracking-tight uppercase italic">{className} Analysis</h1>
+          <p className="text-muted font-bold text-xs uppercase tracking-widest mt-1">Focused Class Intelligence • Dynamic Insights</p>
         </div>
         <div className="px-4 py-2 bg-card rounded-2xl shadow-sm border border-card-border text-xs font-black text-muted uppercase tracking-widest">
-          Last Updated: Today
+          Last Updated: {new Date().toLocaleDateString()}
         </div>
       </div>
       
@@ -43,90 +101,79 @@ export default function Class() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Performance Trend Graph (SVG) */}
+        {/* Performance Trend Graph */}
         <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-card-border flex flex-col h-[400px]">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h3 className="text-lg font-black uppercase tracking-tight leading-none italic">Weekly Performance Trend</h3>
-              <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Average Class Proficiency</p>
+              <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Class Proficiency Simulation</p>
             </div>
             <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">+4.2% Growth</span>
           </div>
-          <div className="flex-1 w-full relative px-4 pb-4">
-            {/* Y-Axis Labels */}
-            <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-[9px] font-black text-muted/50 uppercase h-[calc(100%-2rem)]">
-              <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
-            </div>
-            
-            <div className="ml-8 h-full relative">
-              {/* Grid Lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10 h-[calc(100%-2rem)]">
-                {[0, 1, 2, 3, 4].map(i => <div key={i} className="border-t border-muted w-full"></div>)}
-              </div>
-
-              <svg className="w-full h-[calc(100%-2rem)] overflow-visible" viewBox="0 0 400 200" preserveAspectRatio="none">
+          <div className="flex-1 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
                 <defs>
-                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                
-                {/* Area under the line */}
-                <path
-                  d="M0,140 C50,130 100,160 150,100 C200,40 250,90 300,70 C350,50 400,20 400,20 L400,200 L0,200 Z"
-                  fill="url(#lineGradient)"
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888820" />
+                <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fontSize: 10, fontWeight: 900, fill: '#888888'}}
+                    dy={10}
                 />
-                
-                {/* The Graph Line */}
-                <path
-                  d="M0,140 C50,130 100,160 150,100 C200,40 250,90 300,70 C350,50 400,20 400,20"
-                  fill="none"
-                  stroke="#6366f1"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  className="drop-shadow-md"
+                <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fontSize: 10, fontWeight: 900, fill: '#888888'}}
                 />
-                
-                {/* Interaction points */}
-                {[
-                  {x: 0, y: 140, v: 65}, {x: 100, y: 160, v: 55}, {x: 200, y: 40, v: 85}, {x: 300, y: 70, v: 75}, {x: 400, y: 20, v: 95}
-                ].map((p, i) => (
-                  <g key={i} className="group/dot cursor-pointer">
-                    <circle cx={p.x} cy={p.y} r="5" fill="white" stroke="#6366f1" strokeWidth="3" className="transition-all duration-300 group-hover/dot:r-8" />
-                    <foreignObject x={p.x - 20} y={p.y - 35} width="40" height="25" className="opacity-0 group-hover/dot:opacity-100 transition-opacity pointer-events-none">
-                      <div className="bg-foreground text-background text-[9px] font-black py-1 px-2 rounded-lg text-center shadow-xl">{p.v}%</div>
-                    </foreignObject>
-                  </g>
-                ))}
-              </svg>
-              
-              {/* X-Axis Labels */}
-              <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] font-black text-muted/50 uppercase tracking-widest pt-4">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span>
-              </div>
-            </div>
+                <Tooltip 
+                    contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 900}}
+                />
+                <Area 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#6366f1" 
+                    strokeWidth={4} 
+                    fillOpacity={1} 
+                    fill="url(#colorScore)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         {/* Persona Distribution (Bar Graph) */}
         <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-card-border flex flex-col h-[400px]">
-          <h3 className="text-lg font-black uppercase tracking-tight mb-8 italic">Learning Personas</h3>
-          <div className="space-y-6 flex-1 flex flex-col justify-center">
-            {personaDistribution.map((persona) => (
-              <div key={persona.name} className="space-y-2">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted">
-                  <span>{persona.name}</span>
-                  <span>{persona.value}%</span>
-                </div>
-                <div className="h-3 w-full bg-card-muted rounded-full overflow-hidden border border-card-border">
-                  <div 
-                    className={`h-full ${persona.color} transition-all duration-1000 ease-out`} 
-                    style={{ width: `${persona.value}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+          <h3 className="text-lg font-black uppercase tracking-tight mb-8 italic">Learning Personas (Top 5)</h3>
+          <div className="flex-1 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={personaData} layout="vertical" margin={{ left: 20 }}>
+                <XAxis type="number" hide />
+                <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    axisLine={false} 
+                    tickLine={false}
+                    tick={{fontSize: 10, fontWeight: 900, fill: '#888888'}}
+                    width={100}
+                />
+                <Tooltip 
+                    cursor={{fill: 'transparent'}}
+                    contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 900}}
+                />
+                <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={20}>
+                  {personaData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -138,12 +185,13 @@ export default function Class() {
         </div>
         <div className="relative z-10 max-w-2xl">
           <h3 className="text-accent font-black uppercase tracking-[0.2em] text-[10px] mb-4">AI Recommended Strategy</h3>
-          <h4 className="text-2xl font-black mb-4 tracking-tight">Personalization Required for 5 Students</h4>
+          <h4 className="text-2xl font-black mb-4 tracking-tight">Intervention Strategy for {highRiskCount} Students</h4>
           <p className="text-muted font-medium leading-relaxed">
-            The recent dip in mid-week performance suggests a need for kinesthetic learning materials in the upcoming module. Focus on grouping Persona 1 with Persona 3 for better peer-to-peer engagement.
+            The database shows {highRiskPercentage}% of students are in the high-risk category. Most common persona is "{personaData[0]?.fullLabel}". 
+            Recommended: Prioritize one-on-one sessions for students with attendance below 60%.
           </p>
           <button className="mt-8 bg-foreground text-background font-black py-4 px-8 rounded-2xl hover:bg-accent transition-colors uppercase tracking-widest text-xs shadow-xl shadow-accent/20">
-            Generate Lesson Plan
+            Export Targeted Plan
           </button>
         </div>
       </div>

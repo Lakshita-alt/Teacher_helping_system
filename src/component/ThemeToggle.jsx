@@ -12,9 +12,61 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
+  const toggleTheme = (event) => {
+    // Check if the browser supports the View Transition API
+    if (!document.startViewTransition) {
+      setTheme(theme === "dark" ? "light" : "dark");
+      return;
+    }
+
+    // Get the click position
+    const x = event.clientX;
+    const y = event.clientY;
+    
+    // Calculate distance to the furthest corner to ensure full screen coverage
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    // Add a class to disable all CSS transitions during the snapshot phase
+    document.documentElement.classList.add('no-transitions');
+
+    // Start the transition
+    const transition = document.startViewTransition(async () => {
+      setTheme(theme === "dark" ? "light" : "dark");
+      // Give React a tiny bit of time to apply the theme class
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    // Animate the circular clip-path
+    transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${endRadius}px at ${x}px ${y}px)`,
+      ];
+
+      document.documentElement.animate(
+        {
+          clipPath: clipPath,
+        },
+        {
+          duration: 450,
+          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+
+    // Clean up the helper class after transition finishes
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('no-transitions');
+    });
+  };
+
   if (!mounted) {
     return (
-      <button className="fixed top-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar transition-all duration-200">
+      <button className="fixed top-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar transition-all duration-200 opacity-0">
         <div className="w-5 h-5" />
       </button>
     );
@@ -22,8 +74,8 @@ export function ThemeToggle() {
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="fixed top-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar text-foreground hover:bg-card-muted transition-all duration-200 z-50 shadow-sm"
+      onClick={toggleTheme}
+      className="fixed top-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar text-foreground hover:bg-card-muted transition-all duration-200 z-[1000] shadow-sm"
       aria-label="Toggle theme"
     >
       <div className="w-5 h-5 flex items-center justify-center">
