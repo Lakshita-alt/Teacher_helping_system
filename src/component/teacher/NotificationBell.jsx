@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from '@/component/Icons';
 
 export default function NotificationBell() {
@@ -8,6 +9,7 @@ export default function NotificationBell() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [lastReadTimestamp, setLastReadTimestamp] = useState(null);
     const [teacherId, setTeacherId] = useState(null);
+    const [mounted, setMounted] = useState(false);
     const prevCountRef = useRef(0);
     const audioRef = useRef(null);
 
@@ -44,6 +46,7 @@ export default function NotificationBell() {
     };
 
     useEffect(() => {
+        setMounted(true);
         // Get teacher ID from token
         const token = localStorage.getItem('teacher_token');
         let currentTeacherId = null;
@@ -102,8 +105,8 @@ export default function NotificationBell() {
             {/* Notification Sound */}
             <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" />
 
-            {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
+            {isOpen && mounted && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-10">
                     {/* Backdrop */}
                     <div 
                         className="absolute inset-0 bg-background/80 backdrop-blur-md animate-in fade-in duration-300"
@@ -111,7 +114,7 @@ export default function NotificationBell() {
                     />
                     
                     {/* Modal Content */}
-                    <div className="relative w-full max-w-2xl bg-sidebar border border-sidebar-border rounded-[2.5rem] shadow-2xl overflow-hidden font-mono animate-in zoom-in-95 duration-300 flex flex-col max-h-[80vh]">
+                    <div className="relative w-full max-w-5xl bg-sidebar border border-sidebar-border rounded-[2.5rem] shadow-2xl overflow-hidden font-mono animate-in zoom-in-95 duration-300 flex flex-col max-h-[80vh]">
                         <div className="p-8 border-b border-sidebar-border bg-foreground/5 flex justify-between items-center">
                             <div>
                                 <h3 className="text-xl font-black uppercase tracking-tighter italic">Notification Archive</h3>
@@ -128,7 +131,7 @@ export default function NotificationBell() {
                         <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                             {notifications.length === 0 ? (
                                 <div className="py-20 text-center">
-                                    <div className="text-4xl mb-4 opacity-20">📡</div>
+                                    <Icon name="notification" className="w-12 h-12 mb-4 opacity-20 mx-auto" />
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 italic">No historical data found in the archives.</p>
                                 </div>
                             ) : (
@@ -184,7 +187,8 @@ export default function NotificationBell() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

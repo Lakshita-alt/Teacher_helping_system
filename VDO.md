@@ -1,10 +1,10 @@
-# 🎥 Platform Demonstration Guide: Teacher Helping System
+# Platform Demonstration Guide: Teacher Helping System
 
 This guide outlines the narrative flow, key features, and script for a high-impact video demonstration of the **Learning Pattern Analysis & Guidance Framework**.
 
 ---
 
-## 🛠 Setup & URL Directory
+## Setup & URL Directory
 Ensure the local server is running at `http://localhost:3000`.
 
 | Feature Area | Local URL |
@@ -23,7 +23,7 @@ Ensure the local server is running at `http://localhost:3000`.
 
 ---
 
-## 🎬 Demonstration Flow
+## Demonstration Flow
 
 ### Phase 1: The Administrative "Macro" View
 **Location:** `/admin/school`
@@ -62,7 +62,7 @@ Ensure the local server is running at `http://localhost:3000`.
 
 ---
 
-## 🚀 Key Innovation Highlights
+## Key Innovation Highlights
 1. **Predictive Drift:** Detecting disengagement via participation velocity.
 2. **Qualitative Lexicon:** Transforming data labels into pedagogical profiles.
 3. **Instructional Scaffolding:** AI-generated lesson parameters tailored to class personas.

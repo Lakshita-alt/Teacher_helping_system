@@ -4,8 +4,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell
 } from 'recharts';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Icon } from "@/component/Icons";
 
 export default function StudentSummary(){
@@ -132,18 +130,6 @@ export default function StudentSummary(){
         document.body.removeChild(link);
     };
 
-    const exportToPDF = () => {
-        const doc = new jsPDF();
-        doc.text("Student Analytics Report", 14, 15);
-        const tableColumn = ["ID", "Name", "Persona", "Risk Category", "Attendance", "Hours"];
-        const tableRows = filteredStudents.slice(0, 50).map(s => [
-            s.id, s.name, s.Persona, s.Risk_Category, s.Attendance + "%", s.Hours_Studied
-        ]);
-
-        doc.autoTable(tableColumn, tableRows, { startY: 20 });
-        doc.save("student_report.pdf");
-    };
-
     return (
         <div className="flex flex-col xl:flex-row gap-8 w-full min-h-[calc(100vh-6rem)] text-foreground font-mono">
             {/* Search & Filter Sidebar */}
@@ -153,7 +139,6 @@ export default function StudentSummary(){
                         <label className="px-2 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Filters</label>
                         <div className="flex gap-2">
                             <button onClick={exportToCSV} className="text-[9px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-lg border border-emerald-500/20">CSV</button>
-                            <button onClick={exportToPDF} className="text-[9px] font-black bg-rose-500/10 text-rose-600 px-2 py-1 rounded-lg border border-rose-500/20">PDF</button>
                         </div>
                     </div>
                     

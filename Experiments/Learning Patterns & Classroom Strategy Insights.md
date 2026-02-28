@@ -1,4 +1,4 @@
-## 🎓 Learning Patterns & Classroom Strategy Insights
+## Learning Patterns & Classroom Strategy Insights
 
 ### Theme
 Education | Behavioral Analytics | Personalization
