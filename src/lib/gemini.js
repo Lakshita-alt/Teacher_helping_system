@@ -63,3 +63,31 @@ export async function getClassSuggestion(classData) {
     return "Class analytics currently unavailable.";
   }
 }
+
+export async function getLessonPlan(classData, topic) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return "API Key not found.";
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    const prompt = `
+      As a Pedagogical Architect, design a qualitative lesson plan scaffolding for:
+      Topic: ${topic}
+      Class Dynamic: ${classData.className}
+      Persona Breakdown: ${JSON.stringify(classData.personas)}
+      
+      Focus on 'Differentiated Scaffolding'. Provide:
+      1. One 'Conceptual Anchor' for the whole class.
+      2. Specific qualitative adjustments for the dominant persona.
+      3. A 'Participation Catalyst' to engage at-risk students.
+      Max 150 words.
+    `;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    return "Scaffolding generation currently unavailable.";
+  }
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getStudentSuggestion, getClassSuggestion } from '@/lib/gemini';
+import { getStudentSuggestion, getClassSuggestion, getLessonPlan } from '@/lib/gemini';
 import { getStudentById } from '@/lib/data';
 
 export async function POST(request) {
@@ -19,6 +19,9 @@ export async function POST(request) {
     } else if (data.type === 'class') {
         const suggestion = await getClassSuggestion(data.classData);
         return NextResponse.json({ suggestion });
+    } else if (data.type === 'lesson-plan') {
+        const plan = await getLessonPlan(data.classData, data.topic);
+        return NextResponse.json({ suggestion: plan });
     }
     
     return NextResponse.json({ error: 'Invalid data type' }, { status: 400 });

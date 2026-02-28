@@ -1,11 +1,13 @@
 "use client"
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Icon } from "@/component/Icons";
 
 export default function TeacherDashboard() {
+  const router = useRouter();
   const [summary, setSummary] = useState(null);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -225,7 +227,7 @@ export default function TeacherDashboard() {
           {quickActions.map((action, i) => (
             <div 
               key={i} 
-              onClick={() => action.href === '#pulse' ? setIsPulseOpen(true) : window.location.href = action.href}
+              onClick={() => action.href === '#pulse' ? setIsPulseOpen(true) : router.push(action.href)}
             >
               <div className="bg-card p-8 rounded-[3rem] border border-card-border shadow-sm hover:shadow-xl dark:hover:shadow-none transition-all duration-300 group cursor-pointer h-full text-foreground">
                 <div className={`w-12 h-12 ${action.color} rounded-2xl flex items-center justify-center mb-4 shadow-lg dark:shadow-none group-hover:rotate-6 transition-transform`}>

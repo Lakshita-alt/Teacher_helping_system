@@ -130,6 +130,13 @@ export default function HomeLayout({children}) {
               <Icon name="newspaper" className="w-4 h-4" /> Lexicon
             </button>
           </Link>
+          <Link href="/home/lesson-planner" className="block w-full mb-3">
+            <button className={`w-full py-4 px-6 border border-sidebar-border font-bold text-sm uppercase tracking-wider rounded-2xl shadow-sm transition-all cursor-pointer text-left flex items-center gap-2 ${
+              pathname === "/home/lesson-planner" ? "bg-foreground text-background" : "bg-button-bg hover:bg-button-hover text-button-text"
+            }`}>
+              <Icon name="bolt" className="w-4 h-4" /> Scaffolding
+            </button>
+          </Link>
           <ClassSummary />
           <StudentSummary />
           <Suggestion />
