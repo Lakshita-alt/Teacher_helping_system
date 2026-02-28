@@ -70,7 +70,7 @@ export default function Home() {
           </div>
 
           <button 
-            className="cursor-pointer bg-foreground text-background hover:opacity-90 font-black py-4 rounded-xl mt-4 shadow-lg shadow-accent/10 transition-all active:scale-95 text-center uppercase tracking-widest" 
+            className="cursor-pointer bg-foreground text-background hover:opacity-90 font-black py-4 rounded-xl mt-4 shadow-lg dark:shadow-none transition-all active:scale-95 text-center uppercase tracking-widest" 
             onClick={(e) => Onclick(e)}
           >
             Create Account

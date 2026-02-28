@@ -1,5 +1,6 @@
 "use client"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Icon } from '@/component/Icons';
 
 export default function ClassOverviewModal({prop}){
     const personaData = Object.entries(prop.personas).map(([name, value], index) => ({
@@ -11,16 +12,16 @@ export default function ClassOverviewModal({prop}){
     const total = prop.total;
 
     return(
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-foreground">
             <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight">{prop.className} Overview</h2>
-                <div className="px-4 py-2 bg-slate-50 rounded-xl text-xs font-black uppercase text-slate-500 tracking-widest border border-slate-100">
+                <h2 className="text-3xl font-black text-foreground tracking-tight italic uppercase">{prop.className} Overview</h2>
+                <div className="px-4 py-2 bg-card-muted rounded-xl text-xs font-black uppercase text-muted tracking-widest border border-card-border">
                     ID: {prop.hash.substring(5)}
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 flex flex-col items-center justify-center relative group overflow-hidden h-[400px]">
+                <div className="bg-card-muted p-8 rounded-[2.5rem] border border-card-border flex flex-col items-center justify-center relative group overflow-hidden h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
@@ -38,46 +39,53 @@ export default function ClassOverviewModal({prop}){
                                 ))}
                             </Pie>
                             <Tooltip 
-                                contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 900}}
+                                contentStyle={{
+                                    backgroundColor: 'var(--card)', 
+                                    border: '1px solid var(--card-border)', 
+                                    borderRadius: '1rem', 
+                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
+                                    fontWeight: 900,
+                                    color: 'var(--foreground)'
+                                }}
                             />
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-3xl font-black text-slate-800 tracking-tighter">{total}</span>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Students</span>
+                        <span className="text-3xl font-black text-foreground tracking-tighter">{total}</span>
+                        <span className="text-[9px] font-black text-muted uppercase tracking-widest">Students</span>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-3 justify-center overflow-y-auto max-h-[400px] pr-2">
                     {personaData.map((item, i) => (
-                        <div key={i} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-md transition-all shrink-0">
+                        <div key={i} className="bg-card-muted p-4 rounded-2xl border border-card-border flex items-center justify-between group hover:bg-card hover:shadow-md transition-all shrink-0">
                             <div className="flex items-center gap-4 overflow-hidden">
                                 <div className="w-3 h-3 rounded-full shrink-0" style={{backgroundColor: item.color}}></div>
-                                <span className="font-bold text-slate-700 text-sm line-clamp-1">{item.name}</span>
+                                <span className="font-bold text-foreground/80 text-sm line-clamp-1">{item.name}</span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0 ml-4">
-                                <span className="text-[10px] font-black text-slate-400 uppercase">{Math.round((item.value/total)*100)}%</span>
-                                <span className="text-xl font-black text-slate-800">{item.value}</span>
+                                <span className="text-[10px] font-black text-muted uppercase">{Math.round((item.value/total)*100)}%</span>
+                                <span className="text-xl font-black text-foreground">{item.value}</span>
                             </div>
                         </div>
                     ))}
                     
-                    <div className="mt-2 p-5 bg-slate-900 rounded-3xl text-white flex items-center justify-between shadow-xl shadow-slate-200 shrink-0">
+                    <div className="mt-2 p-5 bg-foreground text-background rounded-3xl flex items-center justify-between shadow-xl dark:shadow-none shrink-0">
                         <span className="font-bold uppercase tracking-widest text-[10px] opacity-60">Total Population</span>
                         <span className="text-2xl font-black">{total}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-amber-50 p-8 rounded-[2rem] border border-amber-100 relative overflow-hidden group">
+            <div className="bg-accent/5 p-8 rounded-[2rem] border border-accent/10 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                    <span className="text-6xl">💡</span>
+                    <Icon name="suggestion" className="w-16 h-16 text-accent" />
                 </div>
-                <h3 className="text-lg font-black text-amber-900 uppercase tracking-tight mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-black text-accent uppercase tracking-tight mb-4 flex items-center gap-2">
                     AI Suggestion Box
                 </h3>
-                <p className="text-amber-800/80 leading-relaxed font-medium">
-                    The predominant group in {prop.className} is "{personaData[0]?.name}". 
+                <p className="text-foreground/80 leading-relaxed font-medium">
+                    The predominant group in {prop.className} is &quot;{personaData[0]?.name}&quot;. 
                     Consider tailoring the curriculum to align with their learning patterns for maximum retention.
                 </p>
             </div>

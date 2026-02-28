@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
+import { Icon } from "@/component/Icons";
 
 export default function Teacher() {
     const [searchPersona, setSearchPersona] = useState("");
@@ -19,14 +20,11 @@ export default function Teacher() {
                     } catch (e) { console.error("Auth error", e); }
                 }
 
-                const res = await fetch('/api/students');
+                const url = className ? `/api/students?className=${encodeURIComponent(className)}` : '/api/students';
+                const res = await fetch(url);
                 const data = await res.json();
                 
-                if (className) {
-                    setStudents(data.filter(s => s.className === className));
-                } else {
-                    setStudents(data);
-                }
+                setStudents(data);
             } catch (error) {
                 console.error("Failed to fetch students:", error);
             } finally {
@@ -81,7 +79,7 @@ export default function Teacher() {
                             onClick={() => setSelectedStudent(student)}
                             className={`w-full rounded-2xl p-4 transition-all font-bold text-sm border flex items-center gap-3 group ${selectedStudent?.id === student.id ? 'bg-accent/10 border-accent text-accent' : 'bg-transparent text-muted border-transparent hover:bg-card-muted hover:border-card-border'}`}
                         >
-                            <div className="w-8 h-8 rounded-xl bg-card-muted flex items-center justify-center text-[10px] group-hover:bg-card transition-colors border border-card-border">👤</div>
+                            <div className="w-8 h-8 rounded-xl bg-card-muted flex items-center justify-center text-[10px] group-hover:bg-card transition-colors border border-card-border"><Icon name="student" className="w-4 h-4" /></div>
                             <div className="flex flex-col items-start overflow-hidden">
                                 <span className="leading-tight text-foreground line-clamp-1">{student.name}</span>
                                 <span className="text-[9px] font-medium text-muted opacity-0 group-hover:opacity-100 transition-opacity">ID: {student.id} • {student.Persona}</span>
@@ -98,23 +96,27 @@ export default function Teacher() {
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 content-start">
                 {selectedStudent ? (
                     <>
-                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl hover:shadow-accent/5 transition-all duration-500 group">
-                            <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50">🆔</div>
-                            <h3 className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Identity Profile</h3>
+                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500 group">
+                            <div className="w-14 h-14 bg-foreground/5 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50 text-foreground"><Icon name="student" className="w-8 h-8" /></div>
+                            <h3 className="text-foreground/70 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Identity Profile</h3>
                             <div className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase italic">{selectedStudent.name}</div>
                             <p className="text-[10px] font-bold text-muted uppercase tracking-widest italic mb-4">{selectedStudent.Persona}</p>
                             <p className="text-muted text-sm font-medium leading-relaxed">Status: {selectedStudent.Risk_Category}. Individual engagement score calculated at {parseFloat(selectedStudent.Risk_Score).toFixed(3)} based on attendance ({selectedStudent.Attendance}%).</p>
                         </div>
 
-                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl hover:shadow-accent/5 transition-all duration-500 group">
-                            <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50">🔍</div>
-                            <h3 className="text-amber-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Deep Analysis</h3>
+                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500 group">
+                            <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50 text-accent"><Icon name="search" className="w-8 h-8" /></div>
+                            <h3 className="text-accent font-black uppercase tracking-[0.2em] text-[10px] mb-4">Deep Analysis</h3>
                             <div className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase italic">Learning Patterns</div>
-                            <p className="text-muted text-sm font-medium leading-relaxed">Student spends {selectedStudent.Hours_Studied} hours/week on studies with a motivation level of {selectedStudent.Motivation_Level}. Peer influence is rated at {selectedStudent.Peer_Influence}.</p>
+                            <p className="text-muted text-sm font-medium leading-relaxed">
+                                Student maintains a <span className="text-foreground font-bold">{parseFloat(selectedStudent.Hours_Studied) >= 15 ? 'substantial' : parseFloat(selectedStudent.Hours_Studied) >= 8 ? 'moderate' : 'limited'}</span> weekly study rhythm. 
+                                Motivation level is classified as <span className="text-foreground font-bold">{parseFloat(selectedStudent.Motivation_Level) >= 2 ? 'resilient' : parseFloat(selectedStudent.Motivation_Level) >= 1 ? 'fluctuating' : 'passive'}</span>, 
+                                while peer influence appears <span className="text-foreground font-bold">{parseFloat(selectedStudent.Peer_Influence) >= 2 ? 'constructive' : parseFloat(selectedStudent.Peer_Influence) >= 1 ? 'neutral' : 'distracting'}</span>.
+                            </p>
                         </div>
 
-                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl hover:shadow-accent/5 transition-all duration-500 group">
-                            <div className="w-14 h-14 bg-rose-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50">⚠️</div>
+                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500 group">
+                            <div className="w-14 h-14 bg-rose-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50 text-rose-500"><Icon name="warning" className="w-8 h-8" /></div>
                             <h3 className="text-rose-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Risk Evaluation</h3>
                             <div className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase italic">Warning Signals</div>
                             <p className="text-muted text-sm font-medium leading-relaxed">
@@ -124,8 +126,8 @@ export default function Teacher() {
                             </p>
                         </div>
 
-                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl hover:shadow-accent/5 transition-all duration-500 group">
-                            <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50">🎯</div>
+                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500 group">
+                            <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform border border-card-border/50 text-emerald-500"><Icon name="target" className="w-8 h-8" /></div>
                             <h3 className="text-emerald-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Intervention</h3>
                             <div className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase italic">Action Strategy</div>
                             <p className="text-muted text-sm font-medium leading-relaxed">
@@ -136,8 +138,8 @@ export default function Teacher() {
                         </div>
                     </>
                 ) : (
-                    <div className="col-span-full h-full flex flex-col items-center justify-center bg-card rounded-[3rem] border border-card-border p-12 text-center">
-                        <div className="text-6xl mb-6">👩‍🏫</div>
+                    <div className="col-span-full h-full flex flex-col items-center justify-center bg-card rounded-[3rem] border border-card-border p-12 text-center text-foreground">
+                        <Icon name="school" className="w-20 h-20 mb-6 opacity-40" />
                         <h2 className="text-2xl font-black uppercase italic mb-2">Teacher Workspace</h2>
                         <p className="text-muted font-bold text-xs uppercase tracking-widest">Select a student from the database to perform deep AI-assisted analysis</p>
                     </div>

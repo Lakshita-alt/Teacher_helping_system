@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Icon } from "@/component/Icons";
 
 export default function LoginPage() {
   const [teacherId, setTeacherId] = useState("");
@@ -82,7 +83,7 @@ export default function LoginPage() {
       <div className="bg-card shadow-2xl rounded-[2.5rem] p-10 w-full max-w-md border border-card-border flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
         <div className="text-center mb-10">
           <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center text-3xl mb-4 mx-auto border border-accent/20">
-            👨‍🏫
+            <Icon name="teacher" className="w-10 h-10 text-accent" />
           </div>
           <h1 className="text-3xl font-black tracking-tighter uppercase italic leading-none">
             Teacher Access
@@ -116,7 +117,7 @@ export default function LoginPage() {
           <button 
             type="submit"
             disabled={loading}
-            className="cursor-pointer bg-foreground text-background hover:bg-accent hover:text-foreground font-black py-5 rounded-2xl mt-4 shadow-xl shadow-accent/10 transition-all active:scale-95 text-center uppercase tracking-widest text-xs disabled:opacity-50"
+            className="cursor-pointer bg-foreground text-background hover:bg-accent hover:text-foreground font-black py-5 rounded-2xl mt-4 shadow-xl dark:shadow-none transition-all active:scale-95 text-center uppercase tracking-widest text-xs disabled:opacity-50"
           >
             {loading ? "Verifying..." : "Enter Dashboard"}
           </button>

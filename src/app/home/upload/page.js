@@ -1,5 +1,6 @@
 "use client"
 import UploadForm from "@/component/Uploadcsv"
+import { Icon } from "@/component/Icons"
 
 export default function UploadPage(){
     return(
@@ -32,7 +33,7 @@ export default function UploadPage(){
                     />
                     <div className="flex flex-col items-center justify-center p-10 md:p-14 border-4 border-dashed border-card-border bg-card-muted group-hover:bg-accent/10 group-hover:border-accent transition-all duration-300">
                         <div className="bg-card p-5 rounded-3xl mb-4 shadow-sm group-hover:scale-110 group-hover:shadow-lg transition-all duration-300 border border-card-border">
-                            <span className="text-4xl">📁</span>
+                            <Icon name="folder" className="w-10 h-10 text-foreground" />
                         </div>
                         <p className="text-sm font-black text-muted uppercase tracking-widest leading-tight text-center">
                             Drop a .zip of essays<br/>
@@ -47,12 +48,12 @@ export default function UploadPage(){
              
              <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl px-4">
                 {[
-                    {icon: '📁', title: 'CSV Only', desc: 'Standard format'},
-                    {icon: '⚡', title: 'Fast Process', desc: 'Instant results'},
-                    {icon: '🛡️', title: 'Secure', desc: 'Encrypted data'}
+                    {icon: 'folder', title: 'CSV Only', desc: 'Standard format'},
+                    {icon: 'bolt', title: 'Fast Process', desc: 'Instant results'},
+                    {icon: 'shield', title: 'Secure', desc: 'Encrypted data'}
                 ].map((item, i) => (
-                    <div key={i} className="bg-card p-8 rounded-3xl border border-card-border flex flex-col items-center text-center hover:bg-card-muted transition-all duration-300">
-                        <span className="text-3xl mb-3">{item.icon}</span>
+                    <div key={i} className="bg-card p-8 rounded-3xl border border-card-border flex flex-col items-center text-center hover:bg-card-muted transition-all duration-300 text-foreground">
+                        <Icon name={item.icon} className="w-10 h-10 mb-3" />
                         <h3 className="font-bold text-sm md:text-base">{item.title}</h3>
                         <p className="text-[10px] text-muted font-bold uppercase tracking-tight mt-1">{item.desc}</p>
                     </div>

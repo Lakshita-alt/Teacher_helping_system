@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { Icon } from "@/component/Icons";
 
 export default function StudentSummary() {
     const [students, setStudents] = useState([]);
@@ -121,7 +122,7 @@ export default function StudentSummary() {
                             className="w-full bg-card-muted border border-card-border rounded-2xl py-4 px-6 text-sm font-bold text-foreground outline-none focus:ring-4 focus:ring-accent/5 focus:border-accent transition-all shadow-inner placeholder:opacity-50 placeholder:text-muted" />
                     </div>
 
-                    <button className="bg-foreground text-background hover:opacity-90 font-black py-4 px-10 rounded-2xl shadow-xl shadow-accent/10 transition-all active:scale-[0.98] cursor-pointer uppercase tracking-widest text-[10px] h-[58px]" onClick={OnButtonClick}>
+                    <button className="bg-foreground text-background hover:opacity-90 font-black py-4 px-10 rounded-2xl shadow-xl dark:shadow-none transition-all active:scale-[0.98] cursor-pointer uppercase tracking-widest text-[10px] h-[58px]" onClick={OnButtonClick}>
                         Search
                     </button>
                 </div>
@@ -129,7 +130,7 @@ export default function StudentSummary() {
 
             {loading ? (
                 <div className="py-24 flex flex-col items-center justify-center text-muted italic animate-pulse">
-                    <div className="w-24 h-24 bg-card rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm border border-card-border">⏳</div>
+                    <div className="w-24 h-24 bg-card rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm border border-card-border"><Icon name="trend" className="w-12 h-12 text-accent" /></div>
                     <p className="text-xl font-black text-foreground uppercase italic tracking-tight">Loading Database</p>
                     <p className="text-sm font-medium text-muted mt-2">Accessing {students.length || "..."} student profiles</p>
                 </div>
@@ -146,10 +147,10 @@ export default function StudentSummary() {
                         {studentsToRender.map((student) => (
                             <div key={student.id} 
                                  onClick={() => handleStudentClick(student)}
-                                 className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-sm hover:shadow-xl hover:shadow-accent/5 hover:-translate-y-1 transition-[transform,shadow,background-color,border-color] duration-300 group cursor-pointer">
+                                 className="bg-card p-8 rounded-[2.5rem] border border-card-border shadow-sm hover:shadow-xl dark:hover:shadow-none hover:-translate-y-1 transition-[transform,shadow,background-color,border-color] duration-300 group cursor-pointer">
                                 <div className="flex items-center gap-5 mb-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-card-muted flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-card transition-[transform,background-color] duration-300 shadow-sm border border-card-border">
-                                        👤
+                                    <div className="w-14 h-14 rounded-2xl bg-card-muted flex items-center justify-center group-hover:scale-110 group-hover:bg-card transition-[transform,background-color] duration-300 shadow-sm border border-card-border text-foreground">
+                                        <Icon name="student" className="w-8 h-8" />
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="font-black text-foreground tracking-tight text-lg leading-tight">{student.name}</h3>
@@ -172,7 +173,7 @@ export default function StudentSummary() {
             
             {(!loading && filteredStudents.length === 0) && (
                 <div className="py-24 flex flex-col items-center justify-center text-muted italic">
-                    <div className="w-24 h-24 bg-card rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm border border-card-border">🔍</div>
+                    <div className="w-24 h-24 bg-card rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm border border-card-border"><Icon name="search" className="w-12 h-12 opacity-30" /></div>
                     <p className="text-xl font-black text-foreground uppercase italic tracking-tight">No Results Found</p>
                     <p className="text-sm font-medium text-muted mt-2">Adjust your filters to see more students</p>
                 </div>
@@ -188,8 +189,8 @@ export default function StudentSummary() {
                         <div className="p-8 md:p-12 space-y-8">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-6">
-                                    <div className="w-20 h-20 rounded-3xl bg-card-muted flex items-center justify-center text-4xl shadow-sm border border-card-border">
-                                        👤
+                                    <div className="w-20 h-20 rounded-3xl bg-card-muted flex items-center justify-center shadow-sm border border-card-border text-foreground">
+                                        <Icon name="student" className="w-10 h-10" />
                                     </div>
                                     <div>
                                         <h2 className="text-3xl font-black text-foreground tracking-tight leading-none italic uppercase">{selectedStudent.name}</h2>
@@ -198,9 +199,9 @@ export default function StudentSummary() {
                                 </div>
                                 <button 
                                     onClick={() => setSelectedStudent(null)}
-                                    className="w-12 h-12 rounded-2xl bg-card-muted hover:bg-card-border flex items-center justify-center text-xl transition-colors"
+                                    className="w-12 h-12 rounded-2xl bg-card-muted hover:bg-card-border flex items-center justify-center transition-colors"
                                 >
-                                    ✕
+                                    <Icon name="close" className="w-6 h-6" />
                                 </button>
                             </div>
 
@@ -245,7 +246,7 @@ export default function StudentSummary() {
 
                             <div className="space-y-4">
                                 <h3 className="text-xs font-black text-muted uppercase tracking-[0.3em] px-2 italic">Future Growth Strategy</h3>
-                                <div className="bg-foreground text-background p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                                <div className="bg-foreground text-background p-8 rounded-[2.5rem] shadow-lg dark:shadow-none relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-background/10 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
                                     
                                     {loadingSuggestion ? (

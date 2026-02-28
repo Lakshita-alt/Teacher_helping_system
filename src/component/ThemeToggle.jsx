@@ -9,7 +9,10 @@ export function ThemeToggle() {
 
   // Prevent hydration mismatch
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const toggleTheme = (event) => {
@@ -66,7 +69,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="fixed top-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar transition-all duration-200 opacity-0">
+      <button className="fixed bottom-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar transition-all duration-200 opacity-0">
         <div className="w-5 h-5" />
       </button>
     );
@@ -75,7 +78,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed top-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar text-foreground hover:bg-card-muted transition-all duration-200 z-[1000] shadow-sm"
+      className="fixed bottom-6 right-6 p-3 rounded-lg border border-sidebar-border bg-sidebar text-foreground hover:bg-card-muted transition-all duration-200 z-[1000] shadow-sm"
       aria-label="Toggle theme"
     >
       <div className="w-5 h-5 flex items-center justify-center">

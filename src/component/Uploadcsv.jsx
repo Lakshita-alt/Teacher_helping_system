@@ -32,7 +32,7 @@ export default function UploadForm() {
   
           <button 
             type="submit" 
-            className="w-full py-5 px-6 bg-foreground text-background hover:bg-foreground/90 font-black text-sm uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-accent/20 active:scale-[0.98] transition-all cursor-pointer relative z-30" 
+            className="w-full py-5 px-6 bg-foreground text-background hover:bg-foreground/90 font-black text-sm uppercase tracking-[0.2em] rounded-2xl shadow-xl dark:shadow-none active:scale-[0.98] transition-all cursor-pointer relative z-30" 
             onClick={(e)=>ClickRedirect(e)}
           >
             Process and Upload

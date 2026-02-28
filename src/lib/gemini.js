@@ -13,21 +13,19 @@ export async function getStudentSuggestion(student) {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `
-      You are an expert educational psychologist. 
-      Analyze this student data and provide 2-3 concise, actionable teaching strategies for their future growth.
+      You are an expert pedagogical consultant and educational psychologist. 
+      Analyze this student data and provide 2-3 qualitative, actionable instructional scaffolding strategies.
+      Use pedagogical terminology (e.g., 'Metacognitive Scaffolding', 'Affective Support', 'Cognitive Load Management').
       
-      Persona: ${student.Persona}
-      Risk: ${student.Risk_Category} (Score: ${student.Risk_Score})
+      Student Persona: ${student.Persona}
+      Current Dynamic: ${student.Risk_Category} (Risk Weight: ${student.Risk_Score})
       Attendance: ${student.Attendance}%
       Study: ${student.Hours_Studied} hrs/week
-      Sleep: ${student.Sleep_Hours} hrs/night
-      Motivation: ${student.Motivation_Level}/2
+      Motivation: ${student.Motivation_Level} (0=Low, 1=Med, 2=High)
       Tutoring: ${student.Tutoring_Sessions} sessions
-      Resources: ${student.Access_to_Resources}/2
-      Peer Influence: ${student.Peer_Influence}/2
-      Extracurriculars: ${student.Extracurricular_Activities == 1 ? "Yes" : "No"}
+      Peer Influence: ${student.Peer_Influence} (0=Negative, 1=Neutral, 2=Positive)
       
-      Format: Return ONLY the strategies in a single paragraph, max 100 words.
+      Format: Provide a qualitative narrative of the student's current learning state, followed by specific scaffolding steps. Max 100 words.
     `;
 
     const result = await model.generateContent(prompt);
@@ -36,10 +34,7 @@ export async function getStudentSuggestion(student) {
   } catch (error) {
     console.error("Gemini API Error details:", error.message);
     if (error.message?.includes("429") || error.message?.includes("Quota")) {
-        return "AI is temporarily busy (Quota Reached). Please wait a minute and try again. This is a limit of the Gemini free tier.";
-    }
-    if (error.message?.includes("API_KEY_INVALID")) {
-        return "AI Error: The provided Gemini API Key is invalid. Please check your .env file.";
+        return "AI is temporarily busy (Quota Reached). Please wait a minute and try again.";
     }
     return `AI Error: ${error.message || "Failed to generate insights."}`;
   }
@@ -49,16 +44,19 @@ export async function getClassSuggestion(classData) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return "API Key not found.";
 
-  const prompt = `
-    Analyze this class-level data for a school administrator:
-    Class: ${classData.className}
-    Total Students: ${classData.total}
-    Persona Distribution: ${JSON.stringify(classData.personas)}
-    
-    Provide one high-level strategic recommendation for this entire class to improve overall engagement. Max 60 words.
-  `;
-
   try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    const prompt = `
+      Analyze this class-level learning persona distribution:
+      Class: ${classData.className}
+      Total Students: ${classData.total}
+      Persona Data: ${JSON.stringify(classData.personas)}
+      
+      Provide one qualitative high-level pedagogical shift for this class to optimize collective engagement. Focus on 'Classroom Climate' and 'Differentiated Instruction'. Max 60 words.
+    `;
+
     const result = await model.generateContent(prompt);
     return result.response.text();
   } catch (error) {

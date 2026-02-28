@@ -51,12 +51,29 @@ export default function HOME(){
       { label: "High Risk", value: summary.riskDistribution["High Risk"] || 0 }
     ];
 
+    const clearCache = () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload();
+    };
+
     return(
         <div className="space-y-8 w-full max-w-full text-foreground">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-none italic uppercase">School Summary</h1>
-              <div className="w-fit px-4 py-2 bg-card rounded-2xl shadow-sm border border-card-border text-[10px] md:text-sm font-bold text-muted uppercase tracking-widest">
-                Academic Year 2025-26
+              <div>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-none italic uppercase">School Summary</h1>
+                <p className="text-[10px] font-bold text-muted uppercase mt-2 tracking-widest">Real-time dynamic data from JSON database</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button 
+                    onClick={clearCache}
+                    className="px-4 py-2 bg-rose-500/10 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-500/20 hover:bg-rose-500/20 transition-all"
+                >
+                    Hard Reset UI
+                </button>
+                <div className="w-fit px-4 py-2 bg-card rounded-2xl shadow-sm border border-card-border text-[10px] md:text-sm font-bold text-muted uppercase tracking-widest">
+                    Academic Year 2025-26
+                </div>
               </div>
             </div>
 

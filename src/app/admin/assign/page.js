@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
+import { Icon } from "@/component/Icons";
 
 export default function AssignClass() {
     const [teachers, setTeachers] = useState([]);
@@ -128,7 +129,7 @@ export default function AssignClass() {
                         <button 
                             disabled={!selectedTeacher || !selectedClass}
                             onClick={handleAssign}
-                            className="w-full bg-foreground text-background font-black py-5 rounded-2xl hover:bg-accent transition-all uppercase tracking-[0.2em] text-xs shadow-xl shadow-accent/10 active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="w-full bg-foreground text-background font-black py-5 rounded-2xl hover:bg-accent transition-all uppercase tracking-[0.2em] text-xs shadow-xl dark:shadow-none active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             Authorize Assignment
                         </button>
@@ -145,7 +146,7 @@ export default function AssignClass() {
                     <div className="flex-1 space-y-3 overflow-y-auto max-h-[400px] pr-2">
                         {assignments.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40 grayscale">
-                                <span className="text-4xl mb-4">📋</span>
+                                <Icon name="grading" className="w-12 h-12 mb-4" />
                                 <p className="text-[10px] font-black uppercase tracking-widest">No active assignments in current session</p>
                             </div>
                         ) : (

@@ -1,72 +1,124 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { parse } from 'csv-parse/sync';
 
-const CSV_PATH = path.join(process.cwd(), 'Experiments', 'genai_ready_student_profiles.csv');
+const DB_PATH = path.join(process.cwd(), 'database', 'students.json');
+const PULSE_PATH = path.join(process.cwd(), 'database', 'pulses.json');
 
-const STUDENT_DATA_PATH = path.join(process.cwd(), 'Experiments', 'Student_data.csv');
-
-const FIRST_NAMES = ["James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Christopher", "Karen", "Charles", "Lisa", "Christopher", "Nancy", "Daniel", "Sandra", "Matthew", "Ashley", "Anthony", "Kimberly", "Mark", "Donna", "Donald", "Emily", "Steven", "Michelle", "Andrew", "Carol", "Paul", "Amanda", "Joshua", "Melissa", "Kenneth", "Deborah", "Kevin", "Stephanie", "Brian", "Rebecca", "George", "Sharon"];
-const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter", "Roberts"];
+// Memory cache for performance - Disabled to ensure fresh reads from JSON DB
+// let cachedStudents = null;
 
 export function getStudents() {
+  // if (cachedStudents) return cachedStudents;
+  
   try {
-    const fileContent = fs.readFileSync(CSV_PATH, 'utf-8');
-    const records = parse(fileContent, {
-      columns: true,
-      skip_empty_lines: true,
-    });
-    
-    // Also read Student_data.csv to get Exam_Score and Previous_Scores
-    let fullDataRecords = [];
-    try {
-      const fullDataContent = fs.readFileSync(STUDENT_DATA_PATH, 'utf-8');
-      fullDataRecords = parse(fullDataContent, {
-        columns: true,
-        skip_empty_lines: true,
-      });
-    } catch (e) {
-      console.error("Could not read full student data CSV", e);
+    if (!fs.existsSync(DB_PATH)) {
+        console.error("Database file missing! Run server/init-db.js first.");
+        return [];
     }
+    const data = fs.readFileSync(DB_PATH, 'utf-8');
+    const students = JSON.parse(data);
+    
+    // Calculate Drift & Social Scaffolding
+    return students.map(s => {
+        // 1. Calculate Attendance Velocity (Drift)
+        // Simulate a 3-week attendance history for calculation
+        const history = s.attendanceHistory || [
+            parseFloat(s.Attendance) + 5, 
+            parseFloat(s.Attendance) + 2, 
+            parseFloat(s.Attendance)
+        ];
+        const drift = history[history.length - 1] - history[0];
+        const isDrifting = drift < -5; // Dropped more than 5% over the period
 
-    // Add an ID and className to each record for easier access
-    const studentsPerClass = 500;
-    return records.map((record, index) => {
-      const fullData = fullDataRecords[index] || {};
-      const classIndex = Math.floor(index / studentsPerClass);
-      const className = `Class ${String.fromCharCode(65 + (classIndex % 26))}${classIndex >= 26 ? Math.floor(classIndex/26) : ''}`;
-      
-      // Generate a semi-unique name based on index
-      const firstName = FIRST_NAMES[index % FIRST_NAMES.length];
-      const lastName = LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
-      const name = `${firstName} ${lastName}`;
+        // 2. Peer Mentorship Matching Logic (Social Scaffolding)
+        // Match 'High Risk' or 'Passive' students with 'Well-Supported Consistent Learner' mentors
+        let mentorMatch = null;
+        if (s.Risk_Category === 'High Risk' || s.Motivation_Level === 'Low') {
+            const potentialMentor = students.find(p => 
+                p.className === s.className && 
+                p.Persona === 'Well-Supported Consistent Learner' && 
+                p.id !== s.id
+            );
+            if (potentialMentor) {
+                mentorMatch = { id: potentialMentor.id, name: potentialMentor.name };
+            }
+        }
 
-      return {
-        id: String(index + 1),
-        name,
-        className,
-        ...record,
-        Exam_Score: fullData.Exam_Score,
-        Previous_Scores: fullData.Previous_Scores,
-        // Simulate monthly trend data
-        trends: [
-            { month: 'Oct', score: Math.round(fullData.Previous_Scores * 0.9) || 60 },
-            { month: 'Nov', score: Math.round(fullData.Previous_Scores * 0.95) || 65 },
-            { month: 'Dec', score: parseInt(fullData.Previous_Scores) || 70 },
-            { month: 'Jan', score: Math.round((parseInt(fullData.Previous_Scores) + parseInt(fullData.Exam_Score || fullData.Previous_Scores))/2) || 75 },
-            { month: 'Feb', score: parseInt(fullData.Exam_Score) || 80 },
-        ]
-      };
+        return {
+            ...s,
+            driftVelocity: drift.toFixed(1),
+            isDrifting,
+            mentorMatch,
+            pedagogicalOverride: s.pedagogicalOverride || null
+        };
     });
   } catch (error) {
-    console.error('Error reading students CSV:', error);
+    console.error("Database read error:", error);
     return [];
   }
 }
 
 export function getStudentById(id) {
   const students = getStudents();
-  return students.find((s) => s.id === id);
+  return students.find(s => s.id === id);
+}
+
+export function updateStudentPulse(studentId, newEngagement) {
+  try {
+    const students = getStudents();
+    const index = students.findIndex(s => s.id === studentId);
+    if (index === -1) return false;
+
+    // Simulate day-of-week tracking
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const currentDay = days[new Date().getDay() - 1] || 'Mon';
+
+    const newPulseEntry = {
+        day: currentDay,
+        engagement: newEngagement,
+        participation: newEngagement === 'Active' ? 9 : newEngagement === 'Steady' ? 6 : 3
+    };
+
+    // Update the pulse array (rotate effectively)
+    const currentPulse = students[index].dailyPulse || [];
+    // If this day exists, replace it, else push and slice
+    const existingIndex = currentPulse.findIndex(p => p.day === currentDay);
+    
+    if (existingIndex > -1) {
+        currentPulse[existingIndex] = { ...currentPulse[existingIndex], ...newPulseEntry };
+    } else {
+        currentPulse.push(newPulseEntry);
+    }
+    
+    students[index].dailyPulse = currentPulse.slice(-5);
+    
+    fs.writeFileSync(DB_PATH, JSON.stringify(students, null, 2));
+    // No cachedStudents to update since caching was removed
+    return true;
+  } catch (error) {
+    console.error("Failed to update student pulse:", error);
+    return false;
+  }
+}
+
+export function updateStudentOverride(studentId, overrideData) {
+  try {
+    const students = getStudents();
+    const index = students.findIndex(s => s.id === studentId);
+    if (index === -1) return false;
+
+    students[index].pedagogicalOverride = {
+        ...overrideData,
+        timestamp: new Date().toISOString()
+    };
+    
+    fs.writeFileSync(DB_PATH, JSON.stringify(students, null, 2));
+    cachedStudents = students;
+    return true;
+  } catch (error) {
+    console.error("Failed to update pedagogical override:", error);
+    return false;
+  }
 }
 
 export function getTeachers() {
@@ -81,36 +133,23 @@ export function getTeachers() {
 
 export function getClasses() {
   const students = getStudents();
-  const classes = [];
-  const studentsPerClass = 500;
+  const classesMap = {};
   
-  for (let i = 0; i < students.length; i += studentsPerClass) {
-    const classIndex = Math.floor(i / studentsPerClass);
-    const classStudents = students.slice(i, i + studentsPerClass);
-    const className = `Class ${String.fromCharCode(65 + (classIndex % 26))}${classIndex >= 26 ? Math.floor(classIndex/26) : ''}`;
-    
-    const personaCounts = {};
-    classStudents.forEach(s => {
-      personaCounts[s.Persona] = (personaCounts[s.Persona] || 0) + 1;
-    });
+  students.forEach(s => {
+    if (!classesMap[s.className]) {
+        classesMap[s.className] = {
+            className: s.className,
+            hash: `hash_${s.className.replace(' ', '_')}`,
+            total: 0,
+            personas: {}
+        };
+    }
+    const cls = classesMap[s.className];
+    cls.total += 1;
+    cls.personas[s.Persona] = (cls.personas[s.Persona] || 0) + 1;
+  });
 
-    classes.push({
-      className,
-      hash: `hash_${classIndex}`,
-      total: classStudents.length,
-      personas: personaCounts,
-      // For legacy component compatibility if needed
-      one: Object.values(personaCounts)[0] || 0,
-      two: Object.values(personaCounts)[1] || 0,
-      three: Object.values(personaCounts)[2] || 0,
-      four: Object.values(personaCounts)[3] || 0,
-    });
-  }
-  return classes;
-}
-
-export function getClassByHash(hash) {
-  return getClasses().find(c => c.hash === hash);
+  return Object.values(classesMap);
 }
 
 export function getClassSummary() {
@@ -142,23 +181,10 @@ export function getClassSummary() {
 
 export function getClassSummaryByName(className) {
   const allStudents = getStudents();
-  // Ensure the className match is trimmed and case-insensitive
-  const targetClass = className?.trim().toLowerCase();
-  const students = allStudents.filter(s => s.className?.trim().toLowerCase() === targetClass);
+  const targetClass = className?.trim();
+  const students = allStudents.filter(s => s.className === targetClass);
   
-  if (students.length === 0) {
-    console.warn(`No students found for class: ${className}`);
-    // Return a structured empty summary instead of global one
-    return {
-      className,
-      totalStudents: 0,
-      averageAttendance: "0.00",
-      averageHoursStudied: "0.00",
-      riskDistribution: {},
-      personaDistribution: {},
-      students: []
-    };
-  }
+  if (students.length === 0) return null;
 
   const totalStudents = students.length;
   const riskCategories = {};
@@ -166,6 +192,32 @@ export function getClassSummaryByName(className) {
   
   let totalAttendance = 0;
   let totalHoursStudied = 0;
+
+  // Aggregate class-wide risk factors
+  const highRiskStudents = students.filter(s => s.Risk_Category === 'High Risk');
+  const catalystCounts = {
+    attendance: 0,
+    motivation: 0,
+    resources: 0,
+    peers: 0
+  };
+
+  highRiskStudents.forEach(s => {
+    if (parseFloat(s.Attendance) < 75) catalystCounts.attendance++;
+    if (s.Motivation_Level === 'Low') catalystCounts.motivation++;
+    if (parseFloat(s.Access_to_Resources) < 1) catalystCounts.resources++;
+    if (s.Peer_Influence === 'Negative') catalystCounts.peers++;
+  });
+
+  // Determine primary catalyst
+  const sortedCatalysts = Object.entries(catalystCounts).sort((a, b) => b[1] - a[1]);
+  const primaryCatalyst = sortedCatalysts[0][0];
+  const catalystLabels = {
+    attendance: "Structural Drift (Attendance Volatility)",
+    motivation: "Affective Barrier (Low Intrinsic Drive)",
+    resources: "Equity Gap (Limited Digital/Print Access)",
+    peers: "Social Friction (Negative Peer Influence)"
+  };
 
   students.forEach((s) => {
     riskCategories[s.Risk_Category] = (riskCategories[s.Risk_Category] || 0) + 1;
@@ -181,6 +233,11 @@ export function getClassSummaryByName(className) {
     averageHoursStudied: (totalHoursStudied / totalStudents).toFixed(2),
     riskDistribution: riskCategories,
     personaDistribution: personas,
-    students: students
+    students: students,
+    riskCatalyst: {
+        label: catalystLabels[primaryCatalyst],
+        count: catalystCounts[primaryCatalyst],
+        percentage: highRiskStudents.length > 0 ? Math.round((catalystCounts[primaryCatalyst] / highRiskStudents.length) * 100) : 0
+    }
   };
 }
