@@ -1,93 +1,118 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export async function getStudentSuggestion(student) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  
-  if (!apiKey || apiKey === "your_actual_key_here" || apiKey.trim() === "") {
-    console.error("GEMINI_API_KEY is missing or invalid in .env");
-    return "Configuration Error: GEMINI_API_KEY not found in .env file. Please add your key and restart the server.";
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  console.error(
+    "❌ GEMINI_API_KEY missing. Add it to .env.local and restart server.",
+  );
+}
+
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+const model = genAI?.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+// simple in-memory cache to prevent repeated AI calls
+const cache = new Map();
+
+// delay helper to avoid hitting rate limits
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runPrompt(prompt, cacheKey) {
+  if (cacheKey && cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
+  if (!model) {
+    return "Configuration Error: GEMINI_API_KEY missing. Add it to .env.local.";
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const prompt = `
-      You are an expert pedagogical consultant and educational psychologist. 
-      Analyze this student data and provide 2-3 qualitative, actionable instructional scaffolding strategies.
-      Use pedagogical terminology (e.g., 'Metacognitive Scaffolding', 'Affective Support', 'Cognitive Load Management').
-      
-      Student Persona: ${student.Persona}
-      Current Dynamic: ${student.Risk_Category} (Risk Weight: ${student.Risk_Score})
-      Attendance: ${student.Attendance}%
-      Study: ${student.Hours_Studied} hrs/week
-      Motivation: ${student.Motivation_Level} (0=Low, 1=Med, 2=High)
-      Tutoring: ${student.Tutoring_Sessions} sessions
-      Peer Influence: ${student.Peer_Influence} (0=Negative, 1=Neutral, 2=Positive)
-      
-      Format: Provide a qualitative narrative of the student's current learning state, followed by specific scaffolding steps. Max 100 words.
-    `;
+    // small delay to prevent API spikes
+    await delay(350);
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
-  } catch (error) {
-    console.error("Gemini API Error details:", error.message);
-    if (error.message?.includes("429") || error.message?.includes("Quota")) {
-        return "AI is temporarily busy (Quota Reached). Please wait a minute and try again.";
+    const text = result.response.text();
+
+    if (cacheKey) {
+      cache.set(cacheKey, text);
     }
-    return `AI Error: ${error.message || "Failed to generate insights."}`;
+
+    return text;
+  } catch (error) {
+    console.error("Gemini Error:", error.message);
+
+    if (error.message?.includes("429") || error.message?.includes("Quota")) {
+      return "AI temporarily busy (quota reached). Please retry in a moment.";
+    }
+
+    return "AI service currently unavailable.";
   }
+}
+
+export async function getStudentSuggestion(student) {
+  const prompt = `
+You are an expert pedagogical consultant.
+
+Analyze this student profile and provide short actionable guidance.
+
+Student Data:
+${JSON.stringify({
+  persona: student.Persona,
+  risk: student.Risk_Category,
+  attendance: student.Attendance,
+  studyHours: student.Hours_Studied,
+  motivation: student.Motivation_Level,
+  tutoring: student.Tutoring_Sessions,
+  peerInfluence: student.Peer_Influence,
+})}
+
+Provide:
+• short diagnosis
+• 2 instructional strategies
+
+Max 80 words.
+`;
+
+  return runPrompt(prompt, `student-${student.id}`);
 }
 
 export async function getClassSuggestion(classData) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return "API Key not found.";
+  const prompt = `
+Analyze this class dynamic.
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+Class: ${classData.className}
 
-    const prompt = `
-      Analyze this class-level learning persona distribution:
-      Class: ${classData.className}
-      Total Students: ${classData.total}
-      Persona Data: ${JSON.stringify(classData.personas)}
-      
-      Provide one qualitative high-level pedagogical shift for this class to optimize collective engagement. Focus on 'Classroom Climate' and 'Differentiated Instruction'. Max 60 words.
-    `;
+Persona Distribution:
+${JSON.stringify(classData.personas)}
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch (error) {
-    return "Class analytics currently unavailable.";
-  }
+Provide ONE teaching adjustment to improve engagement.
+
+Max 60 words.
+`;
+
+  return runPrompt(prompt, `class-${classData.className}`);
 }
 
 export async function getLessonPlan(classData, topic) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return "API Key not found.";
+  const prompt = `
+Design a short pedagogical scaffold.
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+Topic: ${topic}
 
-    const prompt = `
-      As a Pedagogical Architect, design a qualitative lesson plan scaffolding for:
-      Topic: ${topic}
-      Class Dynamic: ${classData.className}
-      Persona Breakdown: ${JSON.stringify(classData.personas)}
-      
-      Focus on 'Differentiated Scaffolding'. Provide:
-      1. One 'Conceptual Anchor' for the whole class.
-      2. Specific qualitative adjustments for the dominant persona.
-      3. A 'Participation Catalyst' to engage at-risk students.
-      Max 150 words.
-    `;
+Class: ${classData.className}
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch (error) {
-    return "Scaffolding generation currently unavailable.";
-  }
+Personas:
+${JSON.stringify(classData.personas)}
+
+Provide:
+1. Concept anchor
+2. Adjustment for dominant persona
+3. Engagement method for at-risk students
+
+Max 120 words.
+`;
+
+  return runPrompt(prompt);
 }
