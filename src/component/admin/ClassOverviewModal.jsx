@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Icon } from '@/component/Icons';
 
@@ -10,6 +11,30 @@ export default function ClassOverviewModal({prop}){
     }));
 
     const total = prop.total;
+
+    const [suggestion, setSuggestion] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setSuggestion("");
+        setLoading(true);
+
+        fetch('/api/ai/suggestion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'class',
+                classData: {
+                    className: prop.className,
+                    personas: prop.personas,
+                }
+            })
+        })
+        .then(res => res.json())
+        .then(data => setSuggestion(data.suggestion || "No suggestion available."))
+        .catch(() => setSuggestion("Failed to load suggestion."))
+        .finally(() => setLoading(false));
+    }, [prop.hash]);
 
     return(
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-foreground">
@@ -38,12 +63,12 @@ export default function ClassOverviewModal({prop}){
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip 
+                            <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'var(--card)', 
-                                    border: '1px solid var(--card-border)', 
-                                    borderRadius: '1rem', 
-                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
+                                    backgroundColor: 'var(--card)',
+                                    border: '1px solid var(--card-border)',
+                                    borderRadius: '1rem',
+                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                                     fontWeight: 900,
                                     color: 'var(--foreground)'
                                 }}
@@ -69,7 +94,7 @@ export default function ClassOverviewModal({prop}){
                             </div>
                         </div>
                     ))}
-                    
+
                     <div className="mt-2 p-5 bg-foreground text-background rounded-3xl flex items-center justify-between shadow-xl dark:shadow-none shrink-0">
                         <span className="font-bold uppercase tracking-widest text-[10px] opacity-60">Total Population</span>
                         <span className="text-2xl font-black">{total}</span>
@@ -84,10 +109,11 @@ export default function ClassOverviewModal({prop}){
                 <h3 className="text-lg font-black text-accent uppercase tracking-tight mb-4 flex items-center gap-2">
                     AI Suggestion Box
                 </h3>
-                <p className="text-foreground/80 leading-relaxed font-medium">
-                    The predominant group in {prop.className} is &quot;{personaData[0]?.name}&quot;. 
-                    Consider tailoring the curriculum to align with their learning patterns for maximum retention.
-                </p>
+                {loading ? (
+                    <p className="text-muted font-medium animate-pulse">Analysing class data...</p>
+                ) : (
+                    <p className="text-foreground/80 leading-relaxed font-medium">{suggestion}</p>
+                )}
             </div>
         </div>
     )

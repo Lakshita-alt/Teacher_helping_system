@@ -17,7 +17,7 @@ export default function StudentSummary() {
   const [suggestion, setSuggestion] = useState("");
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
 
-  // NEW: AI suggestion cache
+  // cache so clicking the same student twice skips the API call
   const [aiSuggestions, setAiSuggestions] = useState({});
 
   useEffect(() => {
@@ -40,29 +40,7 @@ export default function StudentSummary() {
       }
     }
 
-    // NEW: load AI suggestions once
-    async function loadAISuggestions() {
-      try {
-        const res = await fetch("/api/ai/suggestion", {
-          method: "POST",
-        });
-
-        const data = await res.json();
-
-        const map = {};
-
-        data.suggestions.forEach((s) => {
-          map[s.id] = s.suggestion;
-        });
-
-        setAiSuggestions(map);
-      } catch (error) {
-        console.error("AI preload failed");
-      }
-    }
-
     fetchData();
-    loadAISuggestions();
   }, []);
 
   const categories = Array.from(
@@ -83,16 +61,32 @@ export default function StudentSummary() {
     ? filteredStudents
     : filteredStudents.slice(0, 100);
 
-  // UPDATED: no API call anymore
-  const handleStudentClick = (student) => {
+  const handleStudentClick = async (student) => {
     setSelectedStudent(student);
 
-    const cachedSuggestion = aiSuggestions[student.id];
+    const cached = aiSuggestions[student.id];
+    if (cached) {
+      setSuggestion(cached);
+      return;
+    }
 
-    if (cachedSuggestion) {
-      setSuggestion(cachedSuggestion);
-    } else {
-      setSuggestion("AI insight not available.");
+    setLoadingSuggestion(true);
+    setSuggestion("");
+
+    try {
+      const res = await fetch("/api/ai/suggestion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "student", id: student.id }),
+      });
+      const data = await res.json();
+      const text = data.suggestion || "No suggestion available.";
+      setSuggestion(text);
+      setAiSuggestions((prev) => ({ ...prev, [student.id]: text }));
+    } catch {
+      setSuggestion("Failed to load suggestion.");
+    } finally {
+      setLoadingSuggestion(false);
     }
   };
 
@@ -203,7 +197,9 @@ export default function StudentSummary() {
           <div className="bg-card p-8 rounded-3xl max-w-xl">
             <h2 className="text-2xl font-black mb-4">{selectedStudent.name}</h2>
 
-            <p className="text-sm">{suggestion || "Loading insight..."}</p>
+            <p className="text-sm">
+              {loadingSuggestion ? "Analysing student profile..." : suggestion || "No insight available."}
+            </p>
 
             <button
               className="mt-6 px-6 py-3 bg-card-muted rounded-xl"

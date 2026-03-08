@@ -1,77 +1,75 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import {
+//   getStudentSuggestion as geminiStudentSuggestion,
+//   getClassSuggestion as geminiClassSuggestion,
+//   getLessonPlan as geminiLessonPlan,
+// } from "@/lib/gemini";
+import {
+  getStudentSuggestion as anthropicStudentSuggestion,
+  getClassSuggestion as anthropicClassSuggestion,
+  getLessonPlan as anthropicLessonPlan,
+  getBatchSuggestions as anthropicBatchSuggestions,
+} from "@/lib/anthropic";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getStudents } from "@/lib/data";
 
-const apiKey = process.env.GEMINI_API_KEY;
+// ── Batch student suggestions cache ─────────────────────────────────────────
 
-if (!apiKey) {
-  console.error("Missing GEMINI_API_KEY");
-}
+// const geminiApiKey = process.env.GEMINI_API_KEY;
+// const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+// const batchModel = genAI?.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+// let geminiCache = null;
+let anthropicCache = null;
 
-let cache = null;
+// async function geminiBatchSuggestions(students) { ... }
 
-export async function POST() {
-  // return cached suggestions if already generated
-  if (cache) {
-    return NextResponse.json({ suggestions: cache });
-  }
+// ── Route handler ────────────────────────────────────────────────────────────
 
+export async function POST(request) {
   try {
-    const students = getStudents();
+    const body = await request.json().catch(() => ({}));
+    const { type, id, classData, topic } = body;
 
-    const prompt = `
-You are an educational psychologist.
+    // ── Individual student suggestion ────────────────────────────────────────
+    if (type === "student") {
+      const students = getStudents();
+      const student = students.find((s) => s.id === id);
+      if (!student) {
+        return NextResponse.json({ error: "Student not found" }, { status: 404 });
+      }
 
-Generate short learning strategies for each student.
+      const suggestion = await anthropicStudentSuggestion(student);
 
-Return STRICT JSON like this:
-
-[
- {"id":"S001","suggestion":"..."},
- {"id":"S002","suggestion":"..."}
-]
-
-Students:
-${JSON.stringify(
-  students.map((s) => ({
-    id: s.id,
-    persona: s.Persona,
-    risk: s.Risk_Category,
-    attendance: s.Attendance,
-    motivation: s.Motivation_Level,
-  })),
-)}
-`;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-
-    const cleaned = text.replace(/```json|```/g, "").trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch {
-      const match = cleaned.match(/\[[\s\S]*\]/);
-      parsed = match ? JSON.parse(match[0]) : [];
+      return NextResponse.json({ suggestion });
     }
 
-    cache = parsed;
+    // ── Class cluster strategy ───────────────────────────────────────────────
+    if (type === "class") {
+      const suggestion = await anthropicClassSuggestion(classData);
+      return NextResponse.json({ suggestion });
+    }
 
-    return NextResponse.json({
-      suggestions: parsed,
-    });
+    // ── Lesson plan ──────────────────────────────────────────────────────────
+    if (type === "lesson-plan") {
+      const suggestion = await anthropicLessonPlan(classData, topic);
+      return NextResponse.json({ suggestion });
+    }
+
+    // ── Batch student suggestions (legacy / no type) ─────────────────────────
+    if (anthropicCache) {
+      return NextResponse.json({ suggestions: anthropicCache });
+    }
+
+    const students = getStudents();
+    const suggestions = await anthropicBatchSuggestions(students);
+    anthropicCache = suggestions ?? [];
+
+    return NextResponse.json({ suggestions: anthropicCache });
   } catch (error) {
     console.error("AI generation failed:", error);
-
     return NextResponse.json(
-      {
-        error: "AI generation failed",
-        suggestions: [],
-      },
+      { error: "AI generation failed", suggestions: [] },
       { status: 500 },
     );
   }

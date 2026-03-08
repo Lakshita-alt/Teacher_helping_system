@@ -1,61 +1,46 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
+import Anthropic from "@anthropic-ai/sdk";
 
-export async function GET() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  
-  const status = {
-    hasKey: !!apiKey,
-    keyLength: apiKey ? apiKey.length : 0,
-    keyPrefix: apiKey ? apiKey.substring(0, 4) : 'none',
-    envKeys: Object.keys(process.env).filter(k => k.includes('GEMINI')),
-    nodeVersion: process.version
-  };
+// async function testGemini(apiKey) { ... }
 
-  if (!apiKey) {
-    return NextResponse.json({ 
-        error: "GEMINI_API_KEY is missing from process.env", 
-        debug: status 
-    }, { status: 500 });
-  }
+async function testAnthropic(apiKey) {
+  if (!apiKey) return { ok: false, error: "ANTHROPIC_API_KEY missing" };
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    
-    // Attempt to list models to see what is available
-    let availableModels = [];
-    try {
-        const listResult = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        const listData = await listResult.json();
-        availableModels = listData.models || [];
-    } catch (e) {
-        console.error("Could not list models", e);
-    }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent("Say 'System Online'");
-    const text = result.response.text();
-    
-    return NextResponse.json({ 
-        message: "Gemini Connection Successful!", 
-        aiResponse: text,
-        availableModels: availableModels.map(m => m.name),
-        debug: status
+    const client = new Anthropic({ apiKey });
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 32,
+      messages: [{ role: "user", content: "Say 'System Online'" }],
     });
-  } catch (error) {
-    // If the above failed, let's still return the models we found
-    let availableModels = [];
-    try {
-        const listResult = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        const listData = await listResult.json();
-        availableModels = listData.models || [];
-    } catch (e) {}
 
-    return NextResponse.json({ 
-        error: "Gemini API Connection Failed", 
-        errorMessage: error.message,
-        availableModels: availableModels.map(m => m.name),
-        debug: status
-    }, { status: 500 });
+    return { ok: true, response: message.content[0].text };
+  } catch (error) {
+    return { ok: false, error: error.message };
   }
+}
+
+export async function GET() {
+  // const geminiKey = process.env.GEMINI_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+
+  const result = await testAnthropic(anthropicKey);
+
+  return NextResponse.json(
+    {
+      anthropic: {
+        status: result.ok ? "Connected" : "Failed",
+        response: result.response,
+        error: result.error,
+        debug: {
+          hasKey: !!anthropicKey,
+          keyLength: anthropicKey?.length ?? 0,
+          keyPrefix: anthropicKey?.substring(0, 4) ?? "none",
+        },
+      },
+      summary: result.ok ? "Claude online" : "Claude unavailable",
+    },
+    { status: result.ok ? 200 : 500 },
+  );
 }
