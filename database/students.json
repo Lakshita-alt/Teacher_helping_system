@@ -113114,7 +113114,11 @@
     "driftVelocity": "-5.0",
     "isDrifting": false,
     "mentorMatch": null,
-    "pedagogicalOverride": null
+    "pedagogicalOverride": {
+      "type": "snooze",
+      "label": "Snoozed",
+      "timestamp": "2026-03-08T19:47:45.422Z"
+    }
   },
   {
     "id": "1002",
@@ -113227,7 +113231,11 @@
     "driftVelocity": "-5.0",
     "isDrifting": false,
     "mentorMatch": null,
-    "pedagogicalOverride": null
+    "pedagogicalOverride": {
+      "type": "low-priority",
+      "label": "Low Priority",
+      "timestamp": "2026-03-08T20:05:57.241Z"
+    }
   },
   {
     "id": "1003",
@@ -113245,11 +113253,6 @@
     "Peer_Influence": "0.0",
     "Extracurricular_Activities": "0.0",
     "dailyPulse": [
-      {
-        "week": "Week 1",
-        "engagement": "Steady",
-        "participation": 5
-      },
       {
         "week": "Week 2",
         "engagement": "Steady",
@@ -113269,6 +113272,11 @@
         "week": "Week 5",
         "engagement": "Steady",
         "participation": 5
+      },
+      {
+        "day": "Mon",
+        "engagement": "Active",
+        "participation": 9
       }
     ],
     "weeklyScores": [

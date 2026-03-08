@@ -1,8 +1,7 @@
 "use client"
-import { useState, useEffect } from "react";
-import { 
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell
 } from 'recharts';
 import { Icon } from "@/component/Icons";
 
@@ -10,7 +9,6 @@ export default function StudentSummary(){
     const [searchName, setSearchName] = useState("");
     const [riskFilter, setRiskFilter] = useState("");
     const [attendanceFilter, setAttendanceFilter] = useState(0);
-    const [personaFilter, setPersonaFilter] = useState("");
     
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
@@ -19,6 +17,9 @@ export default function StudentSummary(){
     const [loadingAI, setLoadingAI] = useState(false);
     const [aiSuggestion, setAiSuggestion] = useState("");
     const [feedbackStatus, setFeedbackStatus] = useState("none");
+    const [mentorRemarks, setMentorRemarks] = useState([]);
+    const [newRemark, setNewRemark] = useState("");
+    const [savingRemark, setSavingRemark] = useState(false);
 
     const handleOverride = async (type) => {
         if (!selectedStudent) return;
@@ -66,21 +67,60 @@ export default function StudentSummary(){
         fetchStudents();
     }, []);
 
-    const personas = Array.from(new Set(students.map(s => s.Persona))).filter(Boolean);
-    const riskCategories = Array.from(new Set(students.map(s => s.Risk_Category))).filter(Boolean);
+    const personas = useMemo(() => Array.from(new Set(students.map(s => s.Persona))).filter(Boolean), [students]);
+    const riskCategories = useMemo(() => Array.from(new Set(students.map(s => s.Risk_Category))).filter(Boolean), [students]);
 
     const handleStudentClick = async (student) => {
         setLoadingDetails(true);
         setAiSuggestion("");
         setFeedbackStatus("none");
+        setMentorRemarks([]);
+        setNewRemark("");
         try {
-            const res = await fetch(`/api/student/${student.id}`);
-            const data = await res.json();
+            const [detailRes, remarksRes] = await Promise.all([
+                fetch(`/api/student/${student.id}`),
+                fetch(`/api/mentor-remarks?studentId=${student.id}`),
+            ]);
+            const data = await detailRes.json();
+            const remarksData = await remarksRes.json();
             setSelectedStudent(data);
+            setMentorRemarks(remarksData.remarks || []);
         } catch (error) {
             console.error("Failed to fetch student details:", error);
         } finally {
             setLoadingDetails(false);
+        }
+    };
+
+    const saveRemark = async () => {
+        if (!newRemark.trim() || !selectedStudent) return;
+        setSavingRemark(true);
+        try {
+            const res = await fetch("/api/mentor-remarks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId: selectedStudent.id, text: newRemark }),
+            });
+            const data = await res.json();
+            setMentorRemarks((prev) => [...prev, data.remark]);
+            setNewRemark("");
+        } catch (error) {
+            console.error("Failed to save remark:", error);
+        } finally {
+            setSavingRemark(false);
+        }
+    };
+
+    const deleteRemark = async (remarkId) => {
+        try {
+            await fetch("/api/mentor-remarks", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId: selectedStudent.id, remarkId }),
+            });
+            setMentorRemarks((prev) => prev.filter((r) => r.id !== remarkId));
+        } catch (error) {
+            console.error("Failed to delete remark:", error);
         }
     };
 
@@ -103,32 +143,31 @@ export default function StudentSummary(){
         }
     };
 
-    const filteredStudents = students.filter(student => {
-        const matchesSearch = !searchName || 
-            (student.name && student.name.toLowerCase().includes(searchName.toLowerCase())) || 
-            student.Persona.toLowerCase().includes(searchName.toLowerCase()) || 
+    const filteredStudents = useMemo(() => students.filter(student => {
+        const matchesSearch = !searchName ||
+            (student.name && student.name.toLowerCase().includes(searchName.toLowerCase())) ||
+            student.Persona.toLowerCase().includes(searchName.toLowerCase()) ||
             student.id.includes(searchName);
         const matchesRisk = !riskFilter || student.Risk_Category === riskFilter;
         const matchesAttendance = parseFloat(student.Attendance) >= attendanceFilter;
-        const matchesPersona = !personaFilter || student.Persona === personaFilter;
-        return matchesSearch && matchesRisk && matchesAttendance && matchesPersona;
-    });
+        return matchesSearch && matchesRisk && matchesAttendance;
+    }), [students, searchName, riskFilter, attendanceFilter]);
 
-    const exportToCSV = () => {
+    const exportToCSV = useCallback(() => {
         const headers = ["ID", "Name", "Persona", "Risk Category", "Risk Score", "Attendance", "Hours Studied"];
-        const rows = filteredStudents.slice(0, 500).map(s => [
-            s.id, s.name, s.Persona, s.Risk_Category, s.Risk_Score, s.Attendance, s.Hours_Studied
-        ]);
-        
-        let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
+        const rows = filteredStudents.slice(0, 500).map(s =>
+            [s.id, s.name, s.Persona, s.Risk_Category, s.Risk_Score, s.Attendance, s.Hours_Studied]
+                .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`)
+        );
+        const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "student_report.csv");
-        document.body.appendChild(link);
+        link.href = url;
+        link.download = "student_report.csv";
         link.click();
-        document.body.removeChild(link);
-    };
+        URL.revokeObjectURL(url);
+    }, [filteredStudents]);
 
     return (
         <div className="flex flex-col xl:flex-row gap-8 w-full min-h-[calc(100vh-6rem)] text-foreground font-mono">
@@ -165,7 +204,7 @@ export default function StudentSummary(){
                     </div>
                 </div>
 
-                <div className="bg-card rounded-[2.5rem] border border-card-border p-4 shadow-sm flex flex-col gap-1 overflow-y-auto max-h-[50vh] xl:max-h-[60vh]">
+                <div className="bg-card rounded-[2.5rem] border border-card-border p-4 shadow-sm flex flex-col gap-1 overflow-y-auto max-h-[70vh] xl:max-h-[80vh]">
                     <div className="px-4 py-3 mb-2 flex justify-between items-center">
                         <h3 className="text-xs font-black text-muted uppercase tracking-widest">Results</h3>
                         <span className="text-[10px] font-bold bg-card-muted px-2 py-0.5 rounded-full text-muted border border-card-border">
@@ -251,100 +290,68 @@ export default function StudentSummary(){
                             </div>
                         </div>
 
-                        {/* High-Fidelity Weekly Assessment */}
-                        <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-card-border flex flex-col min-h-[300px] md:col-span-2 lg:col-span-1">
-                            <div className="flex justify-between items-center mb-6">
-                                <div>
-                                    <h3 className="text-emerald-500 font-black uppercase tracking-[0.2em] text-[10px]">Weekly Conceptual Pulse</h3>
-                                    <p className="text-lg font-black text-foreground italic">Targeted Quiz Analytics</p>
-                                </div>
-                                <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                                    <Icon name="grading" className="w-5 h-5" />
-                                </div>
-                            </div>
-                            <div className="flex-1 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={selectedStudent.weeklyScores}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--sidebar-border)" />
-                                        <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: 'var(--muted)'}} />
-                                        <YAxis hide domain={[0, 100]} />
-                                        <Tooltip contentStyle={{backgroundColor: 'var(--card)', borderRadius: '1rem', border: '1px solid var(--card-border)', fontWeight: 900}} cursor={{fill: 'var(--foreground)', opacity: 0.05}} />
-                                        <Bar dataKey="score" fill="var(--emerald-500)" radius={[10, 10, 0, 0]} barSize={40}>
-                                            {selectedStudent.weeklyScores.map((entry, index) => (
-                                                <Cell key={index} fill={entry.score < 60 ? 'var(--rose-500)' : 'var(--emerald-500)'} opacity={0.8} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        {/* Weekly Behavioral Pulse */}
-                        <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-card-border flex flex-col min-h-[300px] md:col-span-2 lg:col-span-1">
-                            <div className="flex justify-between items-center mb-6">
-                                <div>
-                                    <h3 className="text-amber-500 font-black uppercase tracking-[0.2em] text-[10px]">Weekly Behavioral Tracker</h3>
-                                    <p className="text-lg font-black text-foreground italic">Engagement Micro-Signals</p>
-                                </div>
-                                <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center">
-                                    <Icon name="sparkles" className="w-5 h-5" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-5 gap-2 flex-1 items-center">
-                                {selectedStudent.dailyPulse.map((p, i) => (
-                                    <div key={i} className="flex flex-col items-center gap-3">
-                                        <div className="w-full aspect-square max-w-[60px] rounded-2xl border-2 flex flex-col items-center justify-center relative group overflow-hidden transition-all hover:scale-105"
-                                            style={{
-                                                backgroundColor: p.engagement === 'High' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)',
-                                                borderColor: p.engagement === 'High' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)'
-                                            }}>
-                                            <span className={`text-xs font-black ${p.engagement === 'High' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                {p.participation}
-                                            </span>
-                                            <span className="text-[7px] font-black uppercase opacity-40">Points</span>
-                                            <div className={`absolute bottom-0 left-0 right-0 h-1 ${p.engagement === 'High' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                        </div>
-                                        <span className="text-[10px] font-black text-muted uppercase tracking-tighter">Week {i + 1}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-[9px] font-bold text-muted mt-4 italic text-center uppercase tracking-widest leading-relaxed px-4">
-                                Score reflects active contributions vs passive observation during instruction.
-                            </p>
-                        </div>
 
                         {/* Longitudinal Behavioral Evolution */}
-                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border md:col-span-2">
-                            <div className="flex justify-between items-center mb-10">
-                                <div>
-                                    <h3 className="text-accent font-black uppercase tracking-[0.2em] text-[10px]">Longitudinal Evolution</h3>
-                                    <p className="text-2xl font-black text-foreground italic">Behavioral Narrative Timeline</p>
-                                </div>
-                                <Icon name="newspaper" className="w-8 h-8 text-accent opacity-20" />
-                            </div>
-                            
-                            <div className="relative">
-                                {/* Timeline Line */}
-                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-card-muted -translate-y-1/2" />
-                                
-                                <div className="relative grid grid-cols-4 gap-4">
-                                    {(selectedStudent.behavioralEvolution || []).map((milestone, i) => (
-                                        <div key={i} className="flex flex-col items-center text-center gap-4 relative z-10">
-                                            <div className={`w-12 h-12 rounded-full border-4 border-card flex items-center justify-center shadow-lg transition-transform hover:scale-110 ${
-                                                milestone.state === 'Active' ? 'bg-emerald-500' : milestone.state === 'Steady' ? 'bg-blue-500' : 'bg-rose-500'
-                                            }`}>
-                                                <div className="w-2 h-2 rounded-full bg-white" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black text-muted uppercase tracking-widest">{milestone.month}</p>
-                                                <p className="text-xs font-black text-foreground uppercase">{milestone.state}</p>
-                                                <p className="text-[9px] font-medium text-muted mt-1 leading-tight max-w-[120px] mx-auto">{milestone.desc}</p>
-                                            </div>
+                        {(() => {
+                            const trends = selectedStudent.trends || [];
+                            const pulse = selectedStudent.dailyPulse || [];
+                            const avgPulse = pulse.length
+                                ? Math.round(pulse.reduce((s, p) => s + p.participation, 0) / pulse.length)
+                                : null;
+                            const pulsePerMonth = trends.map((t, i) => {
+                                const slice = pulse.slice(
+                                    Math.floor((i / trends.length) * pulse.length),
+                                    Math.floor(((i + 1) / trends.length) * pulse.length)
+                                );
+                                return slice.length
+                                    ? Math.round(slice.reduce((s, p) => s + p.participation, 0) / slice.length)
+                                    : avgPulse;
+                            });
+                            const timeline = trends.map((t, i) => {
+                                const prev = trends[i - 1];
+                                const delta = prev ? t.score - prev.score : 0;
+                                const state = t.score >= 75 ? 'Active' : t.score >= 65 ? 'Steady' : 'Declining';
+                                const pulseScore = pulsePerMonth[i];
+                                const desc = i === 0
+                                    ? `Baseline ${t.score} — pulse ${pulseScore ?? '—'}`
+                                    : delta > 5 ? `+${delta} pts — strong gain, pulse ${pulseScore ?? '—'}`
+                                    : delta > 0 ? `+${delta} pts — improving, pulse ${pulseScore ?? '—'}`
+                                    : delta === 0 ? `Stable at ${t.score}, pulse ${pulseScore ?? '—'}`
+                                    : delta > -5 ? `${delta} pts — minor dip, pulse ${pulseScore ?? '—'}`
+                                    : `${delta} pts — needs attention, pulse ${pulseScore ?? '—'}`;
+                                return { month: t.month, state, score: t.score, delta, desc };
+                            });
+                            return (
+                                <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border md:col-span-2">
+                                    <div className="flex justify-between items-center mb-10">
+                                        <div>
+                                            <h3 className="text-accent font-black uppercase tracking-[0.2em] text-[10px]">Longitudinal Evolution</h3>
+                                            <p className="text-2xl font-black text-foreground italic">Behavioral Narrative Timeline</p>
                                         </div>
-                                    ))}
+                                        <Icon name="newspaper" className="w-8 h-8 text-accent opacity-20" />
+                                    </div>
+                                    <div className="relative">
+                                        <div className="absolute top-6 left-0 right-0 h-0.5 bg-card-muted" />
+                                        <div className={`relative grid gap-4`} style={{gridTemplateColumns: `repeat(${timeline.length}, 1fr)`}}>
+                                            {timeline.map((m, i) => (
+                                                <div key={i} className="flex flex-col items-center text-center gap-4 relative z-10">
+                                                    <div className={`w-12 h-12 rounded-full border-4 border-card flex items-center justify-center shadow-lg transition-transform hover:scale-110 ${
+                                                        m.state === 'Active' ? 'bg-emerald-500' : m.state === 'Steady' ? 'bg-blue-500' : 'bg-rose-500'
+                                                    }`}>
+                                                        <span className="text-[9px] font-black text-white">{m.score}</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-muted uppercase tracking-widest">{m.month}</p>
+                                                        <p className={`text-xs font-black uppercase ${m.state === 'Active' ? 'text-emerald-500' : m.state === 'Steady' ? 'text-blue-500' : 'text-rose-500'}`}>{m.state}</p>
+                                                        <p className="text-[9px] font-medium text-muted mt-1 leading-tight max-w-[100px] mx-auto">{m.desc}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            );
+                        })()}
 
                         {/* Qualitative Learning Dynamic */}
                         <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500">
@@ -375,65 +382,52 @@ export default function StudentSummary(){
                             </div>
                         </div>
 
-                        {/* Feature-Driven Explanation */}
-                        <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500">
-                            <div className="w-14 h-14 bg-rose-500/10 rounded-2xl flex items-center justify-center text-2xl mb-6 border border-card-border/50 text-rose-500"><Icon name="warning" className="w-8 h-8" /></div>
-                            <h3 className="text-rose-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Integrative Risk Logic</h3>
-                            <div className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase italic">Causal Anchors</div>
-                            
-                            <div className="mt-4 space-y-3">
-                                <p className="text-muted text-sm font-medium leading-relaxed">
-                                    The model identifies a **{selectedStudent.Risk_Category}** profile. This is not merely a statistical score, but a reflection of intersecting barriers:
-                                </p>
-                                <div className="space-y-2">
-                                    {[
-                                        { condition: parseFloat(selectedStudent.Attendance) < 80, label: "Environmental Barrier", desc: "Intermittent participation is preventing long-term memory encoding." },
-                                        { condition: selectedStudent.Motivation_Level === 'Low', label: "Affective Barrier", desc: "Low intrinsic drive suggests a lack of perceived relevance in core topics." },
-                                        { condition: selectedStudent.performanceAlert, label: "Cognitive Volatility", desc: "A sudden downward shift indicates an external stressor or loss of support." }
-                                    ].filter(f => f.condition).map((factor, i) => (
-                                        <div key={i} className="flex gap-3 items-start p-3 bg-rose-500/5 rounded-xl border border-rose-500/10">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5" />
-                                            <div>
-                                                <p className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase">{factor.label}</p>
-                                                <p className="text-[11px] font-medium text-foreground/70 leading-tight">{factor.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Social Scaffolding (Peer Mentorship) */}
+                        {/* Mentor Remarks */}
                         <div className="bg-card p-10 rounded-[3rem] shadow-sm border border-card-border hover:shadow-xl dark:hover:shadow-none transition-all duration-500 group">
                             <div className="flex justify-between items-center mb-6">
                                 <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-2xl border border-card-border/50 text-indigo-500"><Icon name="student" className="w-8 h-8" /></div>
-                                <div className="px-4 py-1.5 bg-indigo-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">Creative Intervention</div>
                             </div>
                             <h3 className="text-indigo-500 font-black uppercase tracking-[0.2em] text-[10px] mb-4">Social Scaffolding</h3>
                             <div className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase italic">Mentor Synergy</div>
-                            <p className="text-muted text-sm font-medium leading-relaxed mt-4">
-                                Based on social behavioral markers, this student would benefit from a **Peer-Mentorship** pairing with:
-                            </p>
-                            {selectedStudent.mentorMatch ? (
-                                <div className="mt-6 p-5 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl flex items-center justify-between group-hover:bg-indigo-500/10 transition-all">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-black text-xs">
-                                            {selectedStudent.mentorMatch.name[0]}
+
+                            <div className="mt-6 space-y-3 mb-4">
+                                {mentorRemarks.length === 0 ? (
+                                    <p className="text-[10px] text-muted font-medium italic">No remarks yet.</p>
+                                ) : (
+                                    mentorRemarks.map((r) => (
+                                        <div key={r.id} className="flex items-start justify-between gap-3 p-4 bg-card-muted rounded-2xl border border-card-border group/remark">
+                                            <div>
+                                                <p className="text-xs font-medium text-foreground leading-relaxed">{r.text}</p>
+                                                <p className="text-[9px] text-muted mt-1">{new Date(r.timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => deleteRemark(r.id)}
+                                                className="text-muted hover:text-rose-500 transition-colors opacity-0 group-hover/remark:opacity-100 shrink-0 text-[10px] font-black uppercase"
+                                            >
+                                                <Icon name="close" className="w-3 h-3" />
+                                            </button>
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-black text-foreground uppercase tracking-tight">{selectedStudent.mentorMatch.name}</p>
-                                            <p className="text-[9px] font-bold text-muted uppercase">Potential Mentor</p>
-                                        </div>
-                                    </div>
-                                    <button className="px-4 py-2 bg-indigo-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all">
-                                        Initiate Pairing
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="mt-6 p-5 bg-card-muted border border-dashed border-card-border rounded-2xl text-center">
-                                    <p className="text-[10px] font-black text-muted uppercase">No compatible stable peers found in this batch.</p>
-                                </div>
-                            )}
+                                    ))
+                                )}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newRemark}
+                                    onChange={(e) => setNewRemark(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && saveRemark()}
+                                    placeholder="Add a remark..."
+                                    className="flex-1 bg-card-muted border border-card-border rounded-2xl py-3 px-4 text-xs font-medium text-foreground outline-none focus:border-indigo-500 transition-colors"
+                                />
+                                <button
+                                    onClick={saveRemark}
+                                    disabled={savingRemark || !newRemark.trim()}
+                                    className="px-4 py-3 bg-indigo-500 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all disabled:opacity-40"
+                                >
+                                    {savingRemark ? "..." : "Save"}
+                                </button>
+                            </div>
                         </div>
 
                         {/* AI Feedback Loop (Risk Override) */}

@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import ClassSummary from "@/component/teacher/ClassSummary"
 import StudentSummary from "@/component/teacher/StudentSummary"
-import Suggestion from "@/component/teacher/Suggestions"
 import DashboardTab from "@/component/teacher/DashboardTab";
 import NotificationBell from "@/component/teacher/NotificationBell";
 import { Icon } from "@/component/Icons";
@@ -139,7 +138,6 @@ export default function HomeLayout({children}) {
           </Link>
           <ClassSummary />
           <StudentSummary />
-          <Suggestion />
         </div>
 
         {/* Logout Button at bottom of sidebar */}

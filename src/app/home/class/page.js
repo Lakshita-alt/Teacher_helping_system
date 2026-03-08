@@ -58,7 +58,7 @@ export default function Class() {
     { title: "Class Size", value: (summary?.totalStudents || 0).toString(), color: "text-foreground", bg: "bg-foreground/5", icon: "student" },
     { title: "High Risk", value: `${highRiskPercentage}%`, color: "text-rose-500", bg: "bg-rose-500/10", icon: "warning" },
     { title: "Avg. Attendance", value: `${summary?.averageAttendance || 0}%`, color: "text-accent", bg: "bg-accent/10", icon: "trend" },
-    { title: "Avg. Study Hours", value: summary?.averageHoursStudied || 0, color: "text-emerald-500", bg: "bg-emerald-500/10", icon: "sparkles" },
+    { title: "Avg. Study Hrs/Week", value: `${summary?.averageHoursStudied || 0}h`, color: "text-emerald-500", bg: "bg-emerald-500/10", icon: "sparkles" },
   ];
 
   // Mock data for different timelines

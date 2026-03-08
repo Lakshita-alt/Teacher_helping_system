@@ -113,7 +113,6 @@ export function updateStudentOverride(studentId, overrideData) {
     };
     
     fs.writeFileSync(DB_PATH, JSON.stringify(students, null, 2));
-    cachedStudents = students;
     return true;
   } catch (error) {
     console.error("Failed to update pedagogical override:", error);
@@ -193,21 +192,8 @@ export function getClassSummaryByName(className) {
   let totalAttendance = 0;
   let totalHoursStudied = 0;
 
-  // Aggregate class-wide risk factors
-  const highRiskStudents = students.filter(s => s.Risk_Category === 'High Risk');
-  const catalystCounts = {
-    attendance: 0,
-    motivation: 0,
-    resources: 0,
-    peers: 0
-  };
-
-  highRiskStudents.forEach(s => {
-    if (parseFloat(s.Attendance) < 75) catalystCounts.attendance++;
-    if (s.Motivation_Level === 'Low') catalystCounts.motivation++;
-    if (parseFloat(s.Access_to_Resources) < 1) catalystCounts.resources++;
-    if (s.Peer_Influence === 'Negative') catalystCounts.peers++;
-  });
+  // Aggregate class-wide risk factors in a single pass (merged with main loop below)
+  const catalystCounts = { attendance: 0, motivation: 0, resources: 0, peers: 0 };
 
   // Determine primary catalyst
   const sortedCatalysts = Object.entries(catalystCounts).sort((a, b) => b[1] - a[1]);
@@ -224,6 +210,12 @@ export function getClassSummaryByName(className) {
     personas[s.Persona] = (personas[s.Persona] || 0) + 1;
     totalAttendance += parseFloat(s.Attendance || 0);
     totalHoursStudied += parseFloat(s.Hours_Studied || 0);
+    if (s.Risk_Category === 'High Risk') {
+      if (parseFloat(s.Attendance) < 75) catalystCounts.attendance++;
+      if (s.Motivation_Level === 'Low') catalystCounts.motivation++;
+      if (parseFloat(s.Access_to_Resources) < 1) catalystCounts.resources++;
+      if (s.Peer_Influence === 'Negative') catalystCounts.peers++;
+    }
   });
 
   return {
@@ -237,7 +229,7 @@ export function getClassSummaryByName(className) {
     riskCatalyst: {
         label: catalystLabels[primaryCatalyst],
         count: catalystCounts[primaryCatalyst],
-        percentage: highRiskStudents.length > 0 ? Math.round((catalystCounts[primaryCatalyst] / highRiskStudents.length) * 100) : 0
+        percentage: (riskCategories['High Risk'] || 0) > 0 ? Math.round((catalystCounts[primaryCatalyst] / riskCategories['High Risk']) * 100) : 0
     }
   };
 }

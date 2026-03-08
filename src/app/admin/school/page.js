@@ -51,10 +51,9 @@ export default function HOME(){
       { label: "High Risk", value: summary.riskDistribution["High Risk"] || 0 }
     ];
 
-    const clearCache = () => {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.reload();
+    const handleLogout = () => {
+        localStorage.removeItem('admin_token');
+        window.location.href = "/login";
     };
 
     return(
@@ -65,11 +64,11 @@ export default function HOME(){
                 <p className="text-[10px] font-bold text-muted uppercase mt-2 tracking-widest">Real-time dynamic data from JSON database</p>
               </div>
               <div className="flex items-center gap-3">
-                <button 
-                    onClick={clearCache}
+                <button
+                    onClick={handleLogout}
                     className="px-4 py-2 bg-rose-500/10 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-500/20 hover:bg-rose-500/20 transition-all"
                 >
-                    Hard Reset UI
+                    Logout
                 </button>
                 <div className="w-fit px-4 py-2 bg-card rounded-2xl shadow-sm border border-card-border text-[10px] md:text-sm font-bold text-muted uppercase tracking-widest">
                     Academic Year 2025-26
