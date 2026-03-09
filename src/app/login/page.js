@@ -34,7 +34,7 @@ export default function LoginPage() {
         exp: Date.now() + 24 * 60 * 60 * 1000
       };
       localStorage.setItem('admin_token', btoa(JSON.stringify(adminPayload)));
-      window.location.href = "/admin";
+      window.location.href = "/admin/school";
       return;
     }
 
